@@ -43,30 +43,77 @@
       "args": ["mcp-server-git", "--repository", "."]
     }
   },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/pipat/Documents/MiniProject/Ryla/.claude/hooks/user-prompt-submit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input', d).get('command', ''))\" 2>/dev/null || echo ''); if echo \"$cmd\" | grep -qE '^git commit'; then cd /Users/pipat/Documents/MiniProject/Ryla && dotnet format backend/Ryla.slnx --verify-no-changes --severity error 2>&1 || (echo 'BLOCKED: C# formatting violations found. Run: make lint-fix' >&2 && exit 2); fi"
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(dotnet:*)",
       "Bash(npm:*)",
       "Bash(npx:*)",
-      "Bash(git status:*)",
-      "Bash(git log:*)",
-      "Bash(git diff:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git checkout:*)",
-      "Bash(git branch:*)",
-      "Bash(git push:*)",
-      "Bash(git pull:*)",
-      "Bash(git fetch:*)",
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(git stash:*)",
-      "mcp__supabase__*",
-      "mcp__postgres__*",
+      "Bash(make:*)",
+      "Bash(supabase status*)",
+      "Bash(supabase start*)",
+      "Bash(supabase stop*)",
+      "Bash(supabase migration*)",
+      "Bash(supabase gen types*)",
+      "Bash(supabase db diff*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git checkout*)",
+      "Bash(git branch*)",
+      "Bash(git push*)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git stash*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__get_project",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_edge_functions",
+      "mcp__supabase__get_logs",
+      "mcp__postgres__query",
       "mcp__azure__*",
       "mcp__brave-search__*",
       "mcp__context7__*",
       "mcp__git__*"
+    ],
+    "deny": [
+      "Bash(supabase db reset)",
+      "Bash(supabase db push*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(rm -rf*)",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration"
     ]
   }
 }

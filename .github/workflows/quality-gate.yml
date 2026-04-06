@@ -17,6 +17,100 @@ permissions:
 
 jobs:
   # ─────────────────────────────────────────────────────────────
+  # JOB: Changelog Fragment Check
+  #
+  # ทุก PR ต้องมี changelog fragment ใน changelog/fragments/
+  # ยกเว้น PR ที่มี label: skip-changelog, dependencies, release
+  # ─────────────────────────────────────────────────────────────
+  changelog-fragment:
+    name: Changelog Fragment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check changelog fragment
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          # Bypass labels — PRs ที่ไม่ต้องการ changelog
+          SKIP_LABELS=("skip-changelog" "dependencies" "release" "chore: deps" "ci")
+          for LABEL in "${SKIP_LABELS[@]}"; do
+            if echo "$PR_LABELS" | grep -q "\"$LABEL\""; then
+              echo "✅ Bypass label '${LABEL}' detected — changelog fragment not required"
+              exit 0
+            fi
+          done
+
+          # ตรวจหา fragment
+          FRAGMENT=$(ls "changelog/fragments/${PR_NUMBER}-"*.yml 2>/dev/null | head -1 || echo '')
+          if [ -z "$FRAGMENT" ]; then
+            echo "❌ ไม่พบ changelog fragment สำหรับ PR #${PR_NUMBER}"
+            echo ""
+            echo "สร้าง fragment ด้วย: make changelog-add"
+            echo "หรือ เพิ่ม label 'skip-changelog' ถ้าไม่มี user-facing change"
+            exit 1
+          fi
+
+          # Validate fragment schema
+          echo "✅ Found fragment: $FRAGMENT"
+          python3 -c "
+          import yaml, sys
+          with open('$FRAGMENT') as f:
+              data = yaml.safe_load(f)
+          required = ['pr', 'type', 'scope', 'title', 'breaking', 'migration']
+          missing = [k for k in required if k not in data]
+          if missing:
+              print(f'❌ Fragment missing fields: {missing}')
+              sys.exit(1)
+          valid_types = ['feat', 'fix', 'perf', 'refactor', 'security', 'docs', 'chore']
+          if data['type'] not in valid_types:
+              print(f'❌ Invalid type: {data[\"type\"]} — must be one of {valid_types}')
+              sys.exit(1)
+          if len(data['title']) > 80:
+              print(f'❌ Title too long: {len(data[\"title\"])} chars (max 80)')
+              sys.exit(1)
+          print(f'✅ Fragment valid: [{data[\"type\"]}] {data[\"title\"]}')
+          "
+
+      - name: Check migration flag
+        if: always()
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          # ตรวจว่ามี migration ใหม่แต่ fragment ไม่ได้ set migration: true
+          NEW_MIGRATIONS=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD \
+            -- 'supabase/migrations/*.sql' 2>/dev/null || echo '')
+
+          if [ -z "$NEW_MIGRATIONS" ]; then
+            echo "✅ No new migrations — migration flag not required"
+            exit 0
+          fi
+
+          echo "🔍 New migrations detected:"
+          echo "$NEW_MIGRATIONS"
+
+          FRAGMENT=$(ls "changelog/fragments/${PR_NUMBER}-"*.yml 2>/dev/null | head -1 || echo '')
+          if [ -z "$FRAGMENT" ]; then
+            echo "⚠️  New migrations found but no fragment — create one with make changelog-add"
+            exit 0
+          fi
+
+          python3 -c "
+          import yaml, sys
+          with open('$FRAGMENT') as f:
+              data = yaml.safe_load(f)
+          if not data.get('migration', False):
+              print('❌ PR has new Supabase migrations but fragment has migration: false')
+              print('   Update fragment: migration: true')
+              sys.exit(1)
+          print('✅ Migration flag correctly set')
+          "
+
+  # ─────────────────────────────────────────────────────────────
   # JOB: All Checks Must Pass
   #
   # This job waits for ci-backend and ci-frontend to complete,
@@ -60,3 +154,4 @@ jobs:
           echo "| Native AOT Build | Zero IL warnings | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
           echo "| Secret Detection | Zero secrets | security-scan.yml |" >> $GITHUB_STEP_SUMMARY
           echo "| Vulnerability Audit | No High/Critical | security-scan.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| Changelog Fragment | Required per PR | quality-gate.yml |" >> $GITHUB_STEP_SUMMARY

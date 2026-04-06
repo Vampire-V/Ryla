@@ -5,10 +5,12 @@
 # ดูคำสั่งทั้งหมด: make help
 
 .PHONY: help dev dev-stop db-reset db-migrate db-seed db-status types \
-        test test-backend test-frontend test-infra \
+        test test-backend test-frontend test-infra test-unit \
         build build-backend build-frontend build-aot \
-        lint lint-backend lint-frontend \
-        setup setup-secrets
+        lint lint-backend lint-frontend lint-fix \
+        aot-check quality-gate security-check \
+        setup setup-secrets \
+        changelog-add changelog-check context-update agent-status
 
 DOTNET     := dotnet
 NPM        := npm
@@ -148,6 +150,43 @@ lint-fix: ## แก้ไข C# formatting อัตโนมัติ
 	$(DOTNET) format $(BACKEND)
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Quality Gates
+# ─────────────────────────────────────────────────────────────────────────────
+
+aot-check: ## ตรวจสอบ AOT trim warnings — publish ไปยัง /tmp (ต้อง pass ก่อน merge)
+	$(DOTNET) publish backend/src/Ryla.Api/Ryla.Api.csproj \
+	  --configuration Release \
+	  --runtime linux-x64 \
+	  --self-contained true \
+	  /p:PublishAot=true \
+	  /warnaserror \
+	  -o /tmp/ryla-aot-check
+	@echo "✅ AOT check passed — zero trim warnings"
+	@rm -rf /tmp/ryla-aot-check
+
+quality-gate: lint test-unit aot-check changelog-check ## รัน quality gate ทั้งหมด (เทียบเท่า CI) ก่อน create PR
+	@echo ""
+	@echo "════════════════════════════════════════"
+	@echo "  Quality Gate — PASSED"
+	@echo "════════════════════════════════════════"
+	@echo "  ✅ Lint (C# + TypeScript)"
+	@echo "  ✅ Unit tests"
+	@echo "  ✅ AOT check (zero IL warnings)"
+	@echo "  ✅ Changelog fragment"
+	@echo "  Ready for PR creation"
+	@echo "════════════════════════════════════════"
+	@echo ""
+
+security-check: ## ตรวจสอบ NuGet + npm vulnerabilities
+	@echo "🔍 Checking .NET NuGet packages for vulnerabilities..."
+	$(DOTNET) restore $(BACKEND)
+	$(DOTNET) list $(BACKEND) package --vulnerable --include-transitive
+	@echo ""
+	@echo "🔍 Checking npm packages for vulnerabilities..."
+	$(NPM) audit --audit-level=high --prefix $(FRONTEND)
+	@echo "✅ Security check complete"
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Setup (ครั้งแรก)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -163,6 +202,48 @@ setup: ## Setup โปรเจคสำหรับ developer ใหม่
 	@echo "   3. make db-reset     (apply migrations + seed)"
 	@echo "   4. make setup-secrets (ตั้งค่า dotnet user-secrets)"
 	@echo "   5. make dev          (เริ่ม development)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Workflow Automation
+# ─────────────────────────────────────────────────────────────────────────────
+
+changelog-add: ## สร้าง changelog fragment สำหรับ PR (ต้องทำก่อน create PR)
+	@echo "📝 Changelog Fragment Creator"
+	@echo "─────────────────────────────"
+	@read -p "PR Number (หรือกด Enter ใช้ branch name): " pr_num; \
+	 if [ -z "$$pr_num" ]; then pr_num=$$(git rev-parse --abbrev-ref HEAD | grep -o 'RYLA-[0-9]*' || echo "0"); fi; \
+	 read -p "Type [feat/fix/perf/refactor/security/docs/chore]: " type; \
+	 read -p "Scope [api/core/infra/frontend/supabase/ci]: " scope; \
+	 read -p "Title (< 80 chars, user-facing): " title; \
+	 slug=$$(echo "$$title" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | tr -s '-' | sed 's/^-//;s/-$$//'); \
+	 outfile="changelog/fragments/$$pr_num-$$slug.yml"; \
+	 printf "pr: $$pr_num\ntype: $$type\nscope: \"$$scope\"\ntitle: \"$$title\"\ndescription: |\n  (อธิบาย user-facing impact ที่นี่)\nbreaking: false\nmigration: false\n" > "$$outfile"; \
+	 echo ""; \
+	 echo "✅ Created: $$outfile"; \
+	 echo "   แก้ไข description แล้ว commit ไปพร้อมกับ branch"
+
+changelog-check: ## ตรวจสอบว่ามี changelog fragment สำหรับ PR ปัจจุบัน
+	@PR_NUM=$$(git rev-parse --abbrev-ref HEAD | grep -o '[0-9]*' | head -1 || echo ''); \
+	 if [ -z "$$PR_NUM" ]; then echo "⚠️  ไม่พบ PR number ใน branch name"; exit 0; fi; \
+	 FRAGMENT=$$(ls changelog/fragments/$$PR_NUM-*.yml 2>/dev/null | head -1 || echo ''); \
+	 if [ -z "$$FRAGMENT" ]; then \
+	   echo "❌ ไม่พบ changelog fragment สำหรับ PR #$$PR_NUM"; \
+	   echo "   รัน: make changelog-add"; \
+	   exit 1; \
+	 else \
+	   echo "✅ Found changelog fragment: $$FRAGMENT"; \
+	 fi
+
+context-update: ## เปิด active-context.md เพื่ออัพเดท sprint state
+	@echo "Opening .claude/memory/active-context.md..."
+	@$${EDITOR:-vi} .claude/memory/active-context.md
+
+agent-status: ## แสดงสถานะ agent tasks ปัจจุบัน
+	@echo "📋 Agent Task Claims:"
+	@ls .claude/tasks/ 2>/dev/null | grep -v '.gitkeep' || echo "  (ไม่มี active tasks)"
+	@echo ""
+	@echo "📁 Pending Changelog Fragments:"
+	@ls changelog/fragments/ 2>/dev/null | grep -v '.gitkeep' || echo "  (ไม่มี fragments)"
 
 setup-secrets: ## ตั้งค่า dotnet user-secrets สำหรับ local development
 	@echo "กรอก Supabase local connection string:"

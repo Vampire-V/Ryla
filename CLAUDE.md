@@ -182,3 +182,47 @@ When asked to implement a feature, follow this sequence:
 - Target p99 latency for webhook processing: < 500ms.
 - Do not allocate large objects in hot paths. Prefer `Span<T>` and `ArrayPool<T>`
   for buffer manipulation.
+
+---
+
+## Workflow Automation Rules
+
+### Changelog Fragment (Mandatory before every PR)
+
+Before creating a PR, always generate a changelog fragment:
+
+1. **Create fragment** — run `make changelog-add` OR write directly:
+   ```
+   changelog/fragments/{PR_NUMBER}-{slug}.yml
+   ```
+2. **Schema:**
+   ```yaml
+   pr: 42
+   type: feat            # feat|fix|perf|refactor|security|docs|chore
+   scope: "api"          # api|core|infra|frontend|supabase|ci
+   title: "..."          # < 80 chars, user-facing
+   description: |        # optional, explain user impact
+     ...
+   breaking: false
+   migration: false      # true if PR includes Supabase migration
+   ```
+3. **Bypass** — add label `skip-changelog` for CI config, deps updates, release commits only.
+
+### RPI Workflow (Required for non-trivial features)
+
+For any feature that takes more than a few hours or has unclear feasibility:
+
+- **Phase 1 — Research:** Explore codebase, identify risks, surface unknowns → `RESEARCH.md`
+- **Phase 2 — Plan:** Architecture decision + test plan → approved by developer
+- **Phase 3 — Implement:** TDD implementation, step-by-step, tests pass each step
+
+Start by saying: *"Follow RPI workflow for [feature]"*
+
+### Sprint Context
+
+Always read `.claude/memory/active-context.md` at the start of each session.
+Update it when a feature milestone completes.
+
+### Agent Coordination
+
+See `AGENTS.md` for team roster, communication protocol, proven patterns, and pitfalls.
