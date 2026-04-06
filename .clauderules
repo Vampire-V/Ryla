@@ -1,0 +1,154 @@
+# Ryla Engineering Rules
+# Senior Staff Engineer — Google Standard
+# Full reference: CLAUDE.md
+
+---
+
+## 1. CODE STANDARDS
+
+### C# (Google Style + SOLID + Clean Code)
+- PascalCase: types, methods, properties. camelCase: locals, parameters. Prefix interfaces with `I`.
+- Max method length: 20 lines. Extract immediately if exceeded.
+- Use `record` for DTOs and value objects. Avoid mutable classes for data transfer.
+- Error propagation: Result pattern only. No exceptions for control flow.
+- Async: all the way down. `await` everywhere. **Never** `.Result`, `.Wait()`, `.GetAwaiter().GetResult()`.
+- DRY: shared validation → `Ryla.Core`. Never duplicate logic across endpoints.
+
+### TypeScript (Strict + Functional)
+- `"strict": true` in tsconfig always. `"noUncheckedIndexedAccess": true` always.
+- **No `any`**. ESLint `@typescript-eslint/no-explicit-any: error`. Use `unknown` + narrowing.
+- Named exports for everything except Next.js pages/layouts.
+- Co-locate feature types. Only truly shared types go in `src/types/`.
+- Functional utilities. Classes only when stateful logic requires it.
+
+---
+
+## 2. ARCHITECTURE
+
+### Backend: Hexagonal (Ports & Adapters)
+```
+HTTP → Ryla.Api [Inbound Adapter] → Ryla.Core [Use Case] → Ryla.Infrastructure [Outbound Adapter]
+```
+- `Ryla.Core`: ZERO external NuGet dependencies. Pure C# domain + interfaces.
+- `Ryla.Api`: HTTP only (routing, serialization, auth). No business logic.
+- `Ryla.Infrastructure`: All I/O (Supabase, LINE OA, TikTok Shop, Shopee).
+- Dependency rule: `Api → Core ← Infrastructure`. Infrastructure implements Core interfaces.
+
+### Backend: Serverless Optimized (Azure Functions)
+- Entry point: `WebApplication.CreateSlimBuilder(args)` — **never** `CreateBuilder`.
+- Target cold start: < 200ms via Native AOT.
+- Event-driven: `HttpTrigger` for webhooks, `TimerTrigger` for scheduled syncs.
+- No large object allocations in hot paths. Use `Span<T>`, `ArrayPool<T>`.
+
+### Frontend: Modular Next.js (App Router + Edge)
+- Server Components by default. `"use client"` requires explicit justification.
+- Edge Runtime for all API routes and layouts that tolerate it (Global Edge delivery).
+- Route groups: `(marketing)` public, `(dashboard)` authenticated.
+- No SWR/React Query until `fetch` + cache tags prove insufficient.
+
+---
+
+## 3. NATIVE AOT CONSTRAINTS (.NET 10) — NON-NEGOTIABLE
+
+The following are HARD RULES. Violations fail the AOT CI job.
+
+| Rule | Forbidden | Allowed |
+|---|---|---|
+| Reflection | `Activator.CreateInstance`, `MethodInfo.Invoke`, `Type.GetProperties()` | Compile-time source gen |
+| JSON | `JsonSerializer.Serialize<T>()` without context | `[JsonSerializable]` + `JsonSerializerContext` |
+| Dynamic | `dynamic` keyword | Explicit typing |
+| Plugins | `Assembly.Load()`, runtime type scanning | Explicit DI registration |
+| DI | Convention-based assembly scanning | `services.AddScoped<IFoo, Foo>()` per service |
+| Packages | Any NuGet without AOT badge | Verified `IsAotCompatible=true` |
+| Trimming | Suppress warnings blindly | `[DynamicallyAccessedMembers]` annotations |
+
+**AOT Validation command (must pass before merge):**
+```bash
+dotnet publish backend/src/Ryla.Api/Ryla.Api.csproj \
+  -r linux-x64 --self-contained /p:PublishAot=true /warnaserror
+```
+
+---
+
+## 4. WORKFLOW RULES
+
+### Branching
+```
+main        ← protected, production-only
+develop     ← integration target
+  feat/RYLA-{n}-{slug}   ← features
+  fix/RYLA-{n}-{slug}    ← bug fixes
+  chore/{slug}            ← tooling/ci/docs
+```
+- Branch from `develop`. PRs target `develop`. `develop → main` via Release PR.
+
+### Commit Messages (Conventional Commits)
+```
+<type>(<scope>): <imperative subject under 72 chars>
+
+[body in Thai — explain WHY, not what]
+
+[RYLA-{ticket}]
+```
+Types: `feat` `fix` `chore` `docs` `test` `refactor` `perf` `ci`
+Scopes: `api` `core` `infra` `frontend` `supabase` `ci`
+
+### PR Requirements (all required before merge)
+- [ ] What / Why / How sections filled
+- [ ] AOT Check confirmed (no new reflection)
+- [ ] All tests pass
+- [ ] Coverage ≥ 80%
+- [ ] `dotnet format` clean
+- [ ] ESLint 0 warnings
+- [ ] New Supabase tables have RLS policies
+
+---
+
+## 5. TESTING STRATEGY (TDD — STRICT)
+
+**Rule: No production code without a failing test.**
+
+### Test Types
+| Layer | Project | Scope | Mock |
+|---|---|---|---|
+| Unit | `Ryla.Core.Tests` | Use case logic | All ports via NSubstitute |
+| Unit | `Ryla.Api.Tests` | Endpoints | Ports via NSubstitute |
+| Integration | `Ryla.Infrastructure.Tests` | Adapters | Real services / Testcontainers |
+
+### Naming Convention
+```
+{MethodUnderTest}__{Scenario}__{ExpectedOutcome}
+// e.g.: ProcessWebhook__WhenPayloadIsValid__ShouldPublishLineNotification
+```
+
+### Tools
+- **xUnit** — test framework
+- **NSubstitute** — mocking (**never Moq**: uses IL emit, AOT-incompatible)
+- **Testcontainers** — for Postgres integration tests
+- **Vitest + React Testing Library** — frontend
+- **Coverage gate: 80%** minimum, enforced by CI
+
+---
+
+## 6. SECURITY DEFAULTS
+
+- All endpoints: authenticated by default. `[AllowAnonymous]` requires a code comment explaining why.
+- Secrets: `IConfiguration` → Azure Key Vault (prod) / `dotnet user-secrets` (dev). **Never hardcoded.**
+- Webhooks: signature-verify every payload before processing.
+- Supabase: RLS on every table. Application-layer filtering is insufficient alone.
+
+---
+
+## QUICK REFERENCE: File Locations
+
+| What | Where |
+|---|---|
+| New endpoint | `backend/src/Ryla.Api/Endpoints/` |
+| New use case interface | `backend/src/Ryla.Core/Ports/Inbound/` |
+| New outbound port | `backend/src/Ryla.Core/Ports/Outbound/` |
+| New adapter | `backend/src/Ryla.Infrastructure/Adapters/` |
+| JSON type registration | `backend/src/Ryla.Api/Extensions/ServiceCollectionExtensions.cs` |
+| DI registration | `backend/src/Ryla.Infrastructure/DependencyInjection.cs` |
+| DB migration | `supabase/migrations/` |
+| Frontend feature | `frontend/src/app/(dashboard)/` |
+| Shared types | `frontend/src/types/` |

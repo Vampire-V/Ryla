@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ryla.Api/Ryla.Api.csproj" />
+    <Project Path="src/Ryla.Core/Ryla.Core.csproj" />
+    <Project Path="src/Ryla.Infrastructure/Ryla.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ryla.Api.Tests/Ryla.Api.Tests.csproj" />
+    <Project Path="tests/Ryla.Core.Tests/Ryla.Core.Tests.csproj" />
+    <Project Path="tests/Ryla.Infrastructure.Tests/Ryla.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

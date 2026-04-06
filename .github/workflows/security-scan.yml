@@ -1,0 +1,152 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  schedule:
+    - cron: '0 2 * * 1' # ทุกวันจันทร์ 2am UTC
+
+permissions:
+  contents: read
+  security-events: write # สำหรับ upload SARIF results
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1: Secret Detection
+  # Scans full git history for accidentally committed secrets
+  # ─────────────────────────────────────────────────────────────
+  secret-scanning:
+    name: Secret Detection (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full git history — secrets can be in old commits
+
+      - name: Gitleaks — scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2: .NET Dependency Audit
+  # Fails on High or Critical CVEs in NuGet packages
+  # ─────────────────────────────────────────────────────────────
+  dependency-audit-backend:
+    name: .NET Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/**/*.slnx') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore backend/Ryla.slnx
+        # restore ก่อนเสมอ — dotnet list package ต้องการ lock file
+
+      - name: Check for vulnerable packages (with transitive deps)
+        run: |
+          dotnet list backend/Ryla.slnx package \
+            --vulnerable \
+            --include-transitive \
+            2>&1 | tee vuln-report.txt
+          echo "--- Vulnerability Report ---"
+          cat vuln-report.txt
+
+      - name: Fail on High/Critical vulnerabilities
+        run: |
+          python3 - <<'EOF'
+          import re, sys
+
+          with open('vuln-report.txt') as f:
+              content = f.read()
+
+          # ค้นหา High/Critical severity ใน output
+          matches = re.findall(r'(High|Critical)', content, re.IGNORECASE)
+
+          if matches:
+              print(f"❌ Found {len(matches)} High/Critical vulnerability(ies)")
+              sys.exit(1)
+
+          print("✅ No High/Critical vulnerabilities found")
+          EOF
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 3: npm Dependency Audit
+  # Fails on High or Critical CVEs in npm packages
+  # ─────────────────────────────────────────────────────────────
+  dependency-audit-frontend:
+    name: npm Dependency Audit
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit — High/Critical gate
+        run: npm audit --audit-level=high
+        # exit 1 ถ้ามี vulnerability ระดับ high ขึ้นไป
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 4: CodeQL Static Analysis (SAST)
+  # Scans C# and TypeScript for common security vulnerabilities
+  # ─────────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL SAST
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp, typescript]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10 (for C# analysis)
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: Build for CodeQL (C#)
+        if: matrix.language == 'csharp'
+        run: dotnet build backend/Ryla.slnx --configuration Release
+
+      - name: Autobuild (TypeScript)
+        if: matrix.language == 'typescript'
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

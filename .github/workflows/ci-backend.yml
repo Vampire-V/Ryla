@@ -1,0 +1,209 @@
+name: CI — Backend (.NET 10)
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
+
+# ให้ test-reporter เขียน check annotations ได้
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1: Static Analysis (Lint)
+  # Quality Gate: dotnet format violations → fail immediately
+  # ─────────────────────────────────────────────────────────────
+  lint:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/**/*.slnx') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore backend/Ryla.slnx
+
+      - name: dotnet format — verify no violations
+        run: |
+          dotnet format backend/Ryla.slnx \
+            --verify-no-changes \
+            --severity error \
+            --verbosity diagnostic
+        # Exit 1 if any formatting violations → blocks merge
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2: Build + Test + Coverage Gate
+  # Quality Gate: line coverage < 80% → fail
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: Test & Coverage Gate
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/**/*.slnx') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore backend/Ryla.slnx
+
+      - name: Build (Release)
+        run: dotnet build backend/Ryla.slnx --configuration Release --no-restore
+
+      - name: Run tests with coverage collection
+        run: |
+          dotnet test backend/Ryla.slnx \
+            --configuration Release \
+            --no-build \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
+            --logger "trx;LogFileName=results.trx" \
+            --logger "console;verbosity=normal"
+        # coverlet.collector (XPlat Code Coverage) outputs cobertura XML
+
+      - name: Generate consolidated coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: './coverage/**/coverage.cobertura.xml'
+          targetdir: './coverage/report'
+          reporttypes: 'Cobertura;HtmlSummary;TextSummary'
+
+      - name: Quality Gate — enforce 80% line coverage
+        run: |
+          python3 - <<'EOF'
+          import xml.etree.ElementTree as ET, sys
+
+          tree = ET.parse('./coverage/report/Cobertura.xml')
+          rate = float(tree.getroot().attrib.get('line-rate', 0))
+          pct  = round(rate * 100, 1)
+          threshold = 80.0
+
+          print(f"Line coverage : {pct}%")
+          print(f"Threshold     : {threshold}%")
+
+          if rate * 100 < threshold:
+              print(f"\n❌ QUALITY GATE FAILED: {pct}% < {threshold}%")
+              print("Coverage must be ≥ 80% before merging.")
+              sys.exit(1)
+
+          print(f"\n✅ QUALITY GATE PASSED: {pct}% ≥ {threshold}%")
+          EOF
+
+      - name: Print coverage summary
+        if: always()
+        run: cat ./coverage/report/Summary.txt || true
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: .NET Test Results
+          path: './coverage/*.trx'
+          reporter: dotnet-trx
+          fail-on-error: true
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-backend
+          path: ./coverage/report/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 3: Native AOT Build Pipeline
+  # Linux-based Serverless environment (Azure Functions)
+  # /warnaserror = AOT/trim warnings → errors (NON-NEGOTIABLE)
+  # ─────────────────────────────────────────────────────────────
+  aot-build:
+    name: Native AOT Build (Linux x64)
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/**/*.slnx') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Install native AOT build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends clang zlib1g-dev
+
+      - name: Restore dependencies
+        run: dotnet restore backend/Ryla.slnx
+
+      - name: Publish — Native AOT (linux-x64, Serverless)
+        run: |
+          dotnet publish backend/src/Ryla.Api/Ryla.Api.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained true \
+            /p:PublishAot=true \
+            /p:PublishTrimmed=true \
+            /warnaserror
+        # --self-contained: bundles .NET runtime (required for Serverless cold start < 200ms)
+        # /warnaserror: any IL2xxx trim warning = build failure (enforces .clauderules AOT rules)
+
+      - name: Verify AOT binary
+        run: |
+          BINARY="backend/src/Ryla.Api/bin/Release/net10.0/linux-x64/publish/Ryla.Api"
+          if [ ! -f "$BINARY" ]; then
+            echo "❌ AOT binary not found at expected path"
+            exit 1
+          fi
+          SIZE=$(du -sh "$BINARY" | cut -f1)
+          echo "✅ AOT binary produced: $SIZE"
+          echo "   Path: $BINARY"
+          file "$BINARY"
+
+      - name: Upload AOT binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ryla-api-aot-linux-x64
+          path: backend/src/Ryla.Api/bin/Release/net10.0/linux-x64/publish/
+          retention-days: 3

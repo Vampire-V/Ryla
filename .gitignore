@@ -1,0 +1,57 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/**/.vs/
+backend/**/coverage/
+backend/**/*.pfx
+
+# Frontend
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/coverage/
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+.env.mcp
+backend/src/**/appsettings.Development.json
+backend/src/**/secrets.json
+
+# dotnet user-secrets (ถูก store ใน ~/AppData หรือ ~/.microsoft แต่ป้องกันไว้)
+backend/src/**/.secrets/
+
+# Supabase local data (Docker volumes ไม่ต้องการใน git)
+supabase/.branches/
+supabase/.temp/
+supabase/docker/volumes/
+
+# Test results
+coverage/
+TestResults/
+*.trx
+*.cobertura.xml
+
+# IDEs
+.idea/
+.vscode/settings.json
+*.suo
+
+# Skills (reinstall via: npx skills install — lockfile: skills-lock.json)
+.agents/skills/
+.claude/skills/
+skills/
+
+# Other AI editor configs
+.kiro/
+.windsurf/

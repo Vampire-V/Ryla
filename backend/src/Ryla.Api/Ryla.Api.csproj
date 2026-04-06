@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Optimize>true</Optimize>
+    <!-- Native AOT -->
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <IsAotCompatible>true</IsAotCompatible>
+    <!-- Trim warnings สำคัญกว่า AOT warnings จะถูก enforce ใน CI -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft.AspNetCore.OpenApi — built-in AOT-compatible OpenAPI support (.NET 9+) -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ryla.Core\Ryla.Core.csproj" />
+    <ProjectReference Include="..\Ryla.Infrastructure\Ryla.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
