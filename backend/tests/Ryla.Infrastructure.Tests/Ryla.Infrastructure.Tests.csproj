@@ -28,7 +28,7 @@
 
   <!-- Copy supabase migrations ไปยัง output directory เพื่อให้ test fixture อ่านได้ -->
   <ItemGroup>
-    <Content Include="..\..\..\..\supabase\migrations\**\*.sql"
+    <Content Include="..\..\..\supabase\migrations\**\*.sql"
              LinkBase="migrations\"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
