@@ -47,7 +47,8 @@ public sealed class PostgresFixture : IAsyncLifetime
             CREATE SCHEMA IF NOT EXISTS auth;
             CREATE TABLE IF NOT EXISTS auth.users (
                 id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                email TEXT UNIQUE
+                email TEXT UNIQUE,
+                raw_user_meta_data JSONB DEFAULT '{}'::jsonb
             );
             -- ฟังก์ชัน auth.uid() สำหรับ RLS policies
             CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID
@@ -86,6 +87,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         await connection.OpenAsync();
         await ExecuteSqlAsync(connection, """
             TRUNCATE TABLE connections, profiles, tenants RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE auth.users RESTART IDENTITY CASCADE;
             """);
     }
 }
