@@ -5,16 +5,18 @@ namespace Ryla.Infrastructure.Adapters.Database;
 /// <summary>
 /// Npgsql implementation ของ IDbConnectionFactory
 /// ใช้ NpgsqlDataSource ซึ่ง AOT-compatible ตั้งแต่ Npgsql v8+
+/// DataSource ถูก build แบบ lazy — ไม่ throw ตอน DI registration
 /// </summary>
 internal sealed class NpgsqlConnectionFactory : IDbConnectionFactory, IAsyncDisposable
 {
-    private readonly NpgsqlDataSource _dataSource;
+    private readonly Lazy<NpgsqlDataSource> _dataSource;
 
     public NpgsqlConnectionFactory(string connectionString)
     {
-        // NpgsqlDataSourceBuilder: AOT-safe, reuses connections ผ่าน connection pool
-        var builder = new NpgsqlDataSourceBuilder(connectionString);
-        _dataSource = builder.Build();
+        // Lazy: build เมื่อใช้งานจริง — ทำให้ startup ไม่ throw แม้ว่า connection string
+        // ยังไม่สมบูรณ์ (เช่น ตอนรัน unit tests ที่ไม่ต้องการ DB)
+        _dataSource = new Lazy<NpgsqlDataSource>(
+            () => new NpgsqlDataSourceBuilder(connectionString).Build());
     }
 
     /// <inheritdoc />
@@ -22,11 +24,12 @@ internal sealed class NpgsqlConnectionFactory : IDbConnectionFactory, IAsyncDisp
         CancellationToken cancellationToken = default)
     {
         // OpenConnectionAsync: คืน connection ที่พร้อมใช้งานทันที
-        return await _dataSource.OpenConnectionAsync(cancellationToken);
+        return await _dataSource.Value.OpenConnectionAsync(cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await _dataSource.DisposeAsync();
+        if (_dataSource.IsValueCreated)
+            await _dataSource.Value.DisposeAsync();
     }
 }
