@@ -1,73 +1,6 @@
 {
-  "mcpServers": {
-    "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--access-token",
-        "${SUPABASE_ACCESS_TOKEN}",
-        "--project-ref",
-        "${SUPABASE_PROJECT_REF}"
-      ]
-    },
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "${POSTGRES_CONNECTION_STRING}"
-      ]
-    },
-    "azure": {
-      "command": "npx",
-      "args": ["-y", "@azure/mcp@latest"],
-      "env": {
-        "AZURE_SUBSCRIPTION_ID": "${AZURE_SUBSCRIPTION_ID}",
-        "AZURE_RESOURCE_GROUP": "${AZURE_RESOURCE_GROUP}"
-      }
-    },
-    "brave-search": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
-      }
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
-    },
-    "git": {
-      "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "."]
-    }
-  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/pipat/Documents/MiniProject/Ryla/.claude/hooks/user-prompt-submit.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "input=$(cat); cmd=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input', d).get('command', ''))\" 2>/dev/null || echo ''); if echo \"$cmd\" | grep -qE '^git commit'; then cd /Users/pipat/Documents/MiniProject/Ryla && dotnet format backend/Ryla.slnx --verify-no-changes --severity error 2>&1 || (echo 'BLOCKED: C# formatting violations found. Run: make lint-fix' >&2 && exit 2); fi"
-          }
-        ]
-      }
-    ]
   },
   "permissions": {
     "allow": [
@@ -115,5 +48,91 @@
       "mcp__supabase__execute_sql",
       "mcp__supabase__apply_migration"
     ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/pipat/Documents/MiniProject/Ryla/.claude/hooks/user-prompt-submit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input', d).get('command', ''))\" 2>/dev/null || echo ''); if echo \"$cmd\" | grep -qE '^git commit'; then cd /Users/pipat/Documents/MiniProject/Ryla && dotnet format backend/Ryla.slnx --verify-no-changes --severity error 2>&1 || (echo 'BLOCKED: C# formatting violations found. Run: make lint-fix' >&2 && exit 2); fi"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true
+  },
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "${SUPABASE_ACCESS_TOKEN}",
+        "--project-ref",
+        "${SUPABASE_PROJECT_REF}"
+      ]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${POSTGRES_CONNECTION_STRING}"
+      ]
+    },
+    "azure": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest"
+      ],
+      "env": {
+        "AZURE_SUBSCRIPTION_ID": "${AZURE_SUBSCRIPTION_ID}",
+        "AZURE_RESOURCE_GROUP": "${AZURE_RESOURCE_GROUP}"
+      }
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "git": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "."
+      ]
+    }
   }
 }
