@@ -50,6 +50,9 @@ TestResults/
 .vscode/settings.json
 *.suo
 
+# Claude Code local settings (personal overrides, ไม่ share ระหว่าง developers)
+.claude/settings.local.json
+
 # Skills (reinstall via: npx skills install — lockfile: skills-lock.json)
 .agents/skills/
 .claude/skills/
