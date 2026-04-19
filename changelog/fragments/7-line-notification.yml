@@ -1,4 +1,4 @@
-pr: 0
+pr: 7
 type: feat
 scope: "api"
 title: "LINE OA push notification adapter for TikTok + Shopee webhooks"
