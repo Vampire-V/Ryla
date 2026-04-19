@@ -5,5 +5,11 @@ namespace Ryla.Core.Configuration;
 /// </summary>
 public sealed class LineOptions
 {
-    public string BaseUrl { get; init; } = "https://api.line.me";
+    public const string SectionName = "Line";
+
+    /// <summary>
+    /// Base URL ของ LINE Messaging API
+    /// ปกติ https://api.line.me — override ใน dev/E2E เพื่อชี้ไปที่ stub
+    /// </summary>
+    public string BaseUrl { get; set; } = "https://api.line.me";
 }
