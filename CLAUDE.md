@@ -218,6 +218,40 @@ Before creating a PR, always generate a changelog fragment:
    ```
 3. **Bypass** — add label `skip-changelog` for CI config, deps updates, release commits only.
 
+### Human Approval Gate — บังคับก่อน PR ทุกครั้ง
+
+ก่อนเรียก `finishing-a-development-branch`, `pr-agent`, หรือ `git push` ใดๆ ที่มีเป้าหมายสร้าง PR
+ต้องทำตามลำดับนี้เสมอ — **ห้ามข้ามขั้นตอน**:
+
+**1. แสดง change summary ให้ user เห็น**
+```bash
+git log main..HEAD --oneline          # commits ทั้งหมดใน feature branch
+git diff main --stat                  # ไฟล์ที่เปลี่ยน
+```
+
+**2. รัน E2E tests และแสดงผล**
+```bash
+# เริ่ม app ถ้ายังไม่รัน
+dotnet run --project backend/src/Ryla.Api/Ryla.Api.csproj &
+make test-e2e
+```
+ถ้า E2E fail → **หยุด ไม่ proceed ต่อ** จนกว่าจะแก้ไขและผ่านทุก case
+
+**3. ถามคำถามนี้และรอ user ตอบก่อนเดินหน้า**
+```
+✅ E2E passed ({N}/{N} cases)
+
+สรุปงานที่ทำ:
+- [bullet list ของ commits หลัก]
+- [ไฟล์ใหม่/แก้ไขสำคัญ]
+
+พร้อม create PR ไหม? (ถ้าไม่พร้อม บอกสิ่งที่ต้องแก้ก่อน)
+```
+
+**หลักการ:** Agents ทำงาน fully autonomous ระหว่าง implement แต่ **user คือคนเดียวที่ approve ก่อน PR** — ไม่มีข้อยกเว้น
+
+---
+
 ### Plan Requirements (สำหรับ writing-plans skill)
 
 ทุก implementation plan ของ Ryla **ต้องมี task สุดท้ายก่อน Document** ที่ชื่อ

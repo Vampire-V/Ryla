@@ -33,19 +33,25 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
     │
     └── New feature ──► architect-agent (ALWAYS FIRST)
                             │
-                            ├──► backend-engineer-agent (C# implementation)
-                            ├──► frontend-specialist-agent (Next.js UI)
-                            ├──► db-migration-agent (schema change)
+                            ├──► backend-engineer-agent   (C# implementation, commits freely)
+                            ├──► frontend-specialist-agent (Next.js UI, commits freely)
+                            ├──► db-migration-agent        (schema change, commits freely)
                             │
-                            ├──► E2E validation (make test-e2e) ← MANDATORY before PR
-                            │       Write tests/e2e/{feature}.py + run against live app
+                            │   [autonomous zone ends here]
                             │
-                            └──► quality-auditor-agent ──► pr-agent
+                            ├──► Human Approval Gate ◄─── MANDATORY — ห้ามข้าม
+                            │       1. แสดง git log + git diff --stat ให้ user เห็น
+                            │       2. รัน make test-e2e + แสดงผล
+                            │       3. ถาม user: "พร้อม create PR ไหม?"
+                            │       4. รอ user ตอบก่อนเดินหน้า
+                            │
+                            └──► (user approve) ──► quality-auditor-agent ──► pr-agent
 ```
 
 **Hard rules:**
 - `architect-agent` ต้อง approve plan ก่อน implement ทุกครั้ง — ไม่มีข้อยกเว้น
-- E2E smoke tests ต้องผ่านก่อน `quality-auditor-agent` และ `pr-agent` — ไม่มีข้อยกเว้น
+- Human Approval Gate ต้องผ่านก่อน `quality-auditor-agent` และ `pr-agent` — ไม่มีข้อยกเว้น
+- ห้าม call `finishing-a-development-branch` โดยตรงโดยไม่ผ่าน Human Approval Gate ก่อน
 
 ---
 
@@ -200,12 +206,16 @@ migration: false              # true ถ้า PR มี Supabase migration
 
 ---
 
-## Pre-PR Checklist (ทำครบก่อน create PR)
+## Pre-PR Checklist (Human Approval Gate — ทำครบก่อน create PR)
 
+ขั้นตอนนี้ทำโดย **orchestrator ร่วมกับ user** ไม่ใช่ subagent ทำเองโดยอัตโนมัติ
+
+- [ ] แสดง `git log main..HEAD --oneline` ให้ user เห็น commits ทั้งหมด
+- [ ] แสดง `git diff main --stat` ให้ user เห็น scope ของงาน
 - [ ] `make quality-gate` ผ่าน (lint + unit tests + AOT + changelog)
-- [ ] E2E smoke tests ผ่าน: `make test-e2e` (app ต้องรันอยู่)
+- [ ] `make test-e2e` ผ่าน (app ต้องรันอยู่) — แสดงผลให้ user เห็น
 - [ ] `tests/e2e/{feature}.py` ถูก commit เข้า branch แล้ว
-- [ ] PR checklist ใน CLAUDE.md ครบ รวม E2E checkbox
+- [ ] **User ตอบ "พร้อม create PR" อย่างชัดเจน** ← gate ตัวสุดท้าย
 
 ---
 
