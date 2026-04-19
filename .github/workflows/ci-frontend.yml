@@ -7,9 +7,8 @@ on:
       - 'frontend/**'
       - '.github/workflows/ci-frontend.yml'
   pull_request:
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/ci-frontend.yml'
+    branches: [main, develop]
+    # ไม่ใส่ path filter — ให้ run ทุก PR เพื่อ branch protection required checks
 
 permissions:
   contents: read
