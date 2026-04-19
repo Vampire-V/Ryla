@@ -144,4 +144,38 @@ public class ShopeeWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task ReceiveShopeeWebhook__WhenTimestampIsFuture__ShouldReturn401()
+    {
+        // Arrange
+        var client = CreateClientWithVerifier(verifierReturns: true);
+        var futureTimestamp = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds();
+        var payload = $$$"""{"code":3,"shop_id":123456,"timestamp":{{{futureTimestamp}}},"data":{"ordersn":"TEST123","status":"READY_TO_SHIP"}}""";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/webhooks/shopee?authorization=valid-sig");
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ReceiveShopeeWebhook__WhenPayloadIsJsonNull__ShouldReturn422()
+    {
+        // Arrange
+        var client = CreateClientWithVerifier(verifierReturns: true);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/webhooks/shopee?authorization=valid-sig");
+        request.Content = new StringContent("null", Encoding.UTF8, "application/json");
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
 }

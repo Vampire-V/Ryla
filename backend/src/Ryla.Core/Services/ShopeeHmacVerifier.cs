@@ -33,6 +33,7 @@ public sealed class ShopeeHmacVerifier : IShopeeHmacVerifier
     {
         if (string.IsNullOrEmpty(authorizationSignature)) return false;
         if (string.IsNullOrEmpty(rawBody)) return false;
+        if (string.IsNullOrEmpty(partnerKey)) return false;
 
         var baseString = callbackUrl + rawBody;
         var keyBytes = Encoding.UTF8.GetBytes(partnerKey);
@@ -44,6 +45,6 @@ public sealed class ShopeeHmacVerifier : IShopeeHmacVerifier
 
         return CryptographicOperations.FixedTimeEquals(
             Encoding.ASCII.GetBytes(computedHex),
-            Encoding.ASCII.GetBytes(authorizationSignature));
+            Encoding.ASCII.GetBytes(authorizationSignature.ToLowerInvariant()));
     }
 }

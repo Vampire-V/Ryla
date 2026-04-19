@@ -70,4 +70,26 @@ public class ShopeeHmacVerifierTests
         var result = ShopeeHmacVerifier.VerifyCore(rawBody, signature, PartnerKey, "https://wrong-domain.com/webhooks/shopee");
         Assert.False(result);
     }
+
+    [Fact]
+    public void VerifyCore__WhenSignatureIsUppercaseHex__ShouldReturnTrue()
+    {
+        var rawBody = """{"code":3,"shop_id":123,"timestamp":1000}""";
+        var signature = ComputeSignature(rawBody).ToUpperInvariant(); // UPPERCASE
+
+        var result = ShopeeHmacVerifier.VerifyCore(rawBody, signature, PartnerKey, CallbackUrl);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void VerifyCore__WhenPartnerKeyIsEmpty__ShouldReturnFalse()
+    {
+        var rawBody = """{"code":3,"shop_id":123,"timestamp":1000}""";
+        var signature = "anything";
+
+        var result = ShopeeHmacVerifier.VerifyCore(rawBody, signature, string.Empty, CallbackUrl);
+
+        Assert.False(result);
+    }
 }

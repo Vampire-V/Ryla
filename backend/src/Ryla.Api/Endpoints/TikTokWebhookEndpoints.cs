@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Ryla.Api.Extensions;
@@ -23,7 +24,8 @@ internal static class TikTokWebhookEndpoints
             .WithTags("Webhooks")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status422UnprocessableEntity);
+            .Produces(StatusCodes.Status422UnprocessableEntity)
+            .WithMetadata(new RequestSizeLimitAttribute(1_048_576)); // 1MB — webhooks are small
 
         return app;
     }

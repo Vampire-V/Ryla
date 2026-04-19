@@ -8,6 +8,9 @@ public sealed class ShopeeOptions
 {
     public const string SectionName = "Shopee";
 
+    /// <summary>Query parameter name ที่ Shopee ส่ง HMAC signature</summary>
+    public const string SignatureQueryParam = "authorization";
+
     /// <summary>Partner Key จาก Shopee Partner Console</summary>
     public string PartnerKey { get; set; } = string.Empty;
 

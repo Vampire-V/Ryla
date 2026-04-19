@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,7 +25,8 @@ internal static class ShopeeWebhookEndpoints
             .WithTags("Webhooks")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status422UnprocessableEntity);
+            .Produces(StatusCodes.Status422UnprocessableEntity)
+            .WithMetadata(new RequestSizeLimitAttribute(1_048_576)); // 1MB — webhooks are small
 
         return app;
     }
@@ -42,7 +44,7 @@ internal static class ShopeeWebhookEndpoints
         ctx.Request.Body.Position = 0;
 
         // Shopee ส่ง signature มาทาง query parameter ?authorization={hex}
-        var authorization = ctx.Request.Query["authorization"].FirstOrDefault();
+        var authorization = ctx.Request.Query[ShopeeOptions.SignatureQueryParam].FirstOrDefault();
         if (string.IsNullOrEmpty(authorization) || !verifier.Verify(rawBody, authorization))
         {
             logger.LogWarning("Shopee webhook: invalid or missing signature from {RemoteIp}",
