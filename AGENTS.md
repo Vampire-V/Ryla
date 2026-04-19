@@ -37,10 +37,15 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
                             ├──► frontend-specialist-agent (Next.js UI)
                             ├──► db-migration-agent (schema change)
                             │
+                            ├──► E2E validation (make test-e2e) ← MANDATORY before PR
+                            │       Write tests/e2e/{feature}.py + run against live app
+                            │
                             └──► quality-auditor-agent ──► pr-agent
 ```
 
-**Hard rule:** `architect-agent` ต้อง approve plan ก่อน implement ทุกครั้ง — ไม่มีข้อยกเว้น
+**Hard rules:**
+- `architect-agent` ต้อง approve plan ก่อน implement ทุกครั้ง — ไม่มีข้อยกเว้น
+- E2E smoke tests ต้องผ่านก่อน `quality-auditor-agent` และ `pr-agent` — ไม่มีข้อยกเว้น
 
 ---
 
@@ -192,6 +197,15 @@ migration: false              # true ถ้า PR มี Supabase migration
 ```
 
 ยกเว้น PR ที่มี label `skip-changelog` (CI config, deps update, release commits)
+
+---
+
+## Pre-PR Checklist (ทำครบก่อน create PR)
+
+- [ ] `make quality-gate` ผ่าน (lint + unit tests + AOT + changelog)
+- [ ] E2E smoke tests ผ่าน: `make test-e2e` (app ต้องรันอยู่)
+- [ ] `tests/e2e/{feature}.py` ถูก commit เข้า branch แล้ว
+- [ ] PR checklist ใน CLAUDE.md ครบ รวม E2E checkbox
 
 ---
 
