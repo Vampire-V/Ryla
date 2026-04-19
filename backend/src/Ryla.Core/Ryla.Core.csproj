@@ -5,7 +5,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsAotCompatible>true</IsAotCompatible>
-    <!-- ไม่มี external NuGet dependencies — pure domain logic เท่านั้น -->
+    <!-- dependencies จำกัดเฉพาะ BCL + Microsoft.Extensions.* เท่านั้น -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ใช้สำหรับ IOptions<T> pattern — AOT-safe, ไม่มี reflection -->
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- เปิด internal members ให้ test project เข้าถึงได้ (VerifyCore) -->
+    <InternalsVisibleTo Include="Ryla.Core.Tests" />
+  </ItemGroup>
 
 </Project>

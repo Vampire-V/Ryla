@@ -119,7 +119,7 @@ Every PR must include:
 - **How:** Brief technical approach.
 - **Tests:** What was tested and how.
 - **AOT Check:** Confirmed no reflection / non-AOT-safe patterns introduced.
-- **Checklist:** [ ] Lint passes, [ ] Tests pass, [ ] Coverage >= 80%.
+- **Checklist:** [ ] Lint passes, [ ] Tests pass, [ ] Coverage >= 80%, [ ] E2E smoke tests pass (`make test-e2e`).
 
 ---
 
@@ -128,7 +128,10 @@ Every PR must include:
 1. **Write the failing test first.** No production code without a failing test.
 2. **Unit Tests** (`Ryla.Core.Tests`, `Ryla.Api.Tests`): Test in isolation. Mock all ports.
 3. **Integration Tests** (`Ryla.Infrastructure.Tests`): Test adapters against real services.
-4. **Coverage gate:** 80% line coverage minimum, enforced by CI.
+4. **E2E Smoke Tests** (`tests/e2e/*.py`): Real HTTP requests against a live running app.
+   Run via `make test-e2e` — mandatory before every PR. Scripts live alongside the code
+   they test and must be committed. Each script covers happy path + all failure modes.
+5. **Coverage gate:** 80% line coverage minimum, enforced by CI.
 
 ### Test Naming Convention
 
@@ -160,7 +163,14 @@ When asked to implement a feature, follow this sequence:
    with `[JsonSerializable]` contexts.
 7. **AOT Validate** — Confirm no reflection warnings on `dotnet publish` with
    `-r linux-x64 --self-contained`.
-8. **Document** — Update `docs/api/openapi.yaml` and inline XML doc comments.
+8. **E2E Validate** — Write and run a live HTTP smoke test against the running
+   app (`make test-e2e`). Must cover at minimum:
+   - Happy path (valid input → expected success status)
+   - Auth/validation failure (wrong/missing credentials → 401/400)
+   - Bad input (malformed payload → 422)
+   - Edge cases specific to the feature (timing, tampered data, etc.)
+   Save the E2E script to `tests/e2e/{feature-slug}.py` and commit it.
+9. **Document** — Update `docs/api/openapi.yaml` and inline XML doc comments.
 
 ---
 
@@ -207,6 +217,53 @@ Before creating a PR, always generate a changelog fragment:
    migration: false      # true if PR includes Supabase migration
    ```
 3. **Bypass** — add label `skip-changelog` for CI config, deps updates, release commits only.
+
+### Human Approval Gate — บังคับก่อน PR ทุกครั้ง
+
+ก่อนเรียก `finishing-a-development-branch`, `pr-agent`, หรือ `git push` ใดๆ ที่มีเป้าหมายสร้าง PR
+ต้องทำตามลำดับนี้เสมอ — **ห้ามข้ามขั้นตอน**:
+
+**1. แสดง change summary ให้ user เห็น**
+```bash
+git log main..HEAD --oneline          # commits ทั้งหมดใน feature branch
+git diff main --stat                  # ไฟล์ที่เปลี่ยน
+```
+
+**2. รัน E2E tests และแสดงผล**
+```bash
+# เริ่ม app ถ้ายังไม่รัน
+dotnet run --project backend/src/Ryla.Api/Ryla.Api.csproj &
+make test-e2e
+```
+ถ้า E2E fail → **หยุด ไม่ proceed ต่อ** จนกว่าจะแก้ไขและผ่านทุก case
+
+**3. ถามคำถามนี้และรอ user ตอบก่อนเดินหน้า**
+```
+✅ E2E passed ({N}/{N} cases)
+
+สรุปงานที่ทำ:
+- [bullet list ของ commits หลัก]
+- [ไฟล์ใหม่/แก้ไขสำคัญ]
+
+พร้อม create PR ไหม? (ถ้าไม่พร้อม บอกสิ่งที่ต้องแก้ก่อน)
+```
+
+**หลักการ:** Agents ทำงาน fully autonomous ระหว่าง implement แต่ **user คือคนเดียวที่ approve ก่อน PR** — ไม่มีข้อยกเว้น
+
+---
+
+### Plan Requirements (สำหรับ writing-plans skill)
+
+ทุก implementation plan ของ Ryla **ต้องมี task สุดท้ายก่อน Document** ที่ชื่อ
+`Task N: E2E Smoke Test` โดยมีเนื้อหา:
+- ระบุ path ของ E2E script: `tests/e2e/{feature-slug}.py`
+- รายการ test cases ครบ (happy path + auth failure + bad input + edge cases)
+- คำสั่ง run: `make test-e2e` (app ต้องรันก่อน)
+- Expected: ผ่านทั้งหมด
+
+Plan ที่ไม่มี E2E task ถือว่า **incomplete** — ห้าม approve
+
+---
 
 ### RPI Workflow (Required for non-trivial features)
 
