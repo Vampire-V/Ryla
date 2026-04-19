@@ -26,5 +26,6 @@ app.MapOpenApi();
 
 app.MapHealthEndpoints();
 app.MapTikTokWebhookEndpoints();
+app.MapShopeeWebhookEndpoints();
 
 app.Run();
