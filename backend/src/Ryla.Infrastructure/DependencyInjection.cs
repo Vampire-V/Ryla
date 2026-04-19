@@ -4,6 +4,7 @@ using Ryla.Core.Ports.Outbound;
 using Ryla.Infrastructure.Adapters.Connections;
 using Ryla.Infrastructure.Adapters.Database;
 using Ryla.Infrastructure.Adapters.LineMessaging;
+using Ryla.Infrastructure.Adapters.GoogleSheets;
 using Ryla.Infrastructure.Adapters.Tenants;
 
 namespace Ryla.Infrastructure;
@@ -35,6 +36,15 @@ public static class DependencyInjection
         // Note: LineOptions configuration happens in Api layer (ServiceCollectionExtensions)
         // เพื่อหลีกเลี่ยง IL2026/IL3050 warnings ใน AOT-compatible library
         services.AddHttpClient<ILineNotifier, LineMessagingClient>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+
+        // ─── Google Sheets API ───────────────────────────────────────────────────
+        // Note: GoogleSheetsOptions configuration happens in Api layer (ServiceCollectionExtensions)
+        services.AddSingleton<GoogleJwtSigner>();
+        services.AddSingleton<GoogleSheetsTokenCache>();
+        services.AddHttpClient<ISheetAppender, GoogleSheetsClient>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(10);
         });
