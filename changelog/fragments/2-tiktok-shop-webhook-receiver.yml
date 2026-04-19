@@ -1,0 +1,10 @@
+pr: 2
+type: feat
+scope: "api"
+title: "TikTok Shop webhook receiver with HMAC-SHA256 verification"
+description: |
+  รับ POST webhook จาก TikTok Shop พร้อม HMAC-SHA256 signature verification
+  ป้องกัน replay attack ด้วย timestamp age check (5 นาที)
+  Return 401 ถ้า signature ไม่ valid, 200 ถ้า valid
+breaking: false
+migration: false
