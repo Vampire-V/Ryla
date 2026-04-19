@@ -10,14 +10,14 @@
 | Agent | บทบาท | เรียกใช้เมื่อ |
 |---|---|---|
 | `orchestrator-agent` | Entry point — routing meta-agent | Request ไม่ชัดเจน, งานข้ามหลาย layer |
-| `architect-agent` | System design + AOT compliance | Path A (new feature) และ Path C ขนาดใหญ่เท่านั้น |
-| `backend-engineer-agent` | .NET 10 + AOT implementation | งาน backend ที่ไม่ต้องการ frontend |
-| `frontend-specialist-agent` | Next.js App Router + TypeScript | งาน frontend ที่ไม่ต้องการ backend |
-| `feature-agent` | Full-stack coordinator (backend + frontend พร้อมกัน) | Path A ที่มีทั้ง backend + frontend ใน scope เดียว |
+| `architect-agent` | System design + AOT compliance | Path A และ Path C ที่เปลี่ยน public interface/boundary |
+| `backend-engineer-agent` | .NET 10 + AOT implementation | งาน backend ที่ไม่ต้อง coordinate กับ frontend |
+| `frontend-specialist-agent` | Next.js App Router + TypeScript | งาน frontend ที่ไม่ต้อง coordinate กับ backend |
+| `feature-agent` | Full-stack coordinator | Path A ที่ backend + frontend ต้อง coordinate (เช่น API contract ใหม่) |
 | `db-migration-agent` | Supabase migrations + RLS | Path D — ทุก schema change ไม่มีข้อยกเว้น |
 | `devops-orchestrator-agent` | CI/CD + Azure + deployment | Path E — pipeline, infra, env vars |
-| `quality-auditor-agent` | Pre-merge review + AOT + coverage | Path A–D ก่อน PR (optional สำหรับ Path E–H) |
-| `pr-agent` | PR creation | หลัง Human Approval Gate และ quality-auditor PASS |
+| `quality-auditor-agent` | Pre-merge review + AOT + coverage | Path A–D, H(post-merge) ก่อน PR (optional สำหรับ Path E, F) |
+| `pr-agent` | PR creation | หลัง Human Approval Gate ทุกครั้ง |
 
 ---
 
@@ -31,20 +31,26 @@ User Request
     ▼
 orchestrator-agent  ←── reads .claude/memory/active-context.md
     │
+    ├── [Q] Question / exploration (ไม่ต้องเปลี่ยนโค้ด)
+    │       → ตอบโดยตรง หรือ dispatch Explore agent
+    │         ไม่ต้อง branch, ไม่ต้อง PR, ไม่ต้อง gate
+    │
     ├── [A] New feature (non-trivial)
-    │       → architect-agent → feature-agent (full-stack) หรือ
-    │         backend-engineer-agent + frontend-specialist-agent (แยก)
+    │       → architect-agent → implement (ดูเกณฑ์ feature-agent ด้านล่าง)
     │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
     │
     ├── [B] Bug fix
-    │       → systematic-debugging (ถ้าหาสาเหตุไม่เจอ) → backend/frontend-agent
-    │         → unit test → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
-    │         ⚠️ ถ้า bug fix ต้องการ schema change → ผ่าน db-migration-agent ด้วย (Path B+D)
+    │       → ลอง fix เองก่อน (อ่าน error, trace code, ลอง reproduce)
+    │         → ถ้าหลัง 2 attempts ยังไม่พบ root cause → systematic-debugging skill
+    │         → backend/frontend-agent → unit test
+    │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
+    │         ⚠️ ถ้า bug fix ต้องการ schema change → ผ่าน db-migration-agent ด้วย
     │
     ├── [C] Refactor
-    │       → (> 3 ไฟล์ หรือเปลี่ยน architecture) architect-agent → implement → all tests
+    │       → (เปลี่ยน public interface หรือ layer boundary) architect-agent → implement → all tests
     │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
-    │         (< 3 ไฟล์ ชัดเจน) implement โดยตรง → tests → [Full Approval Gate] → pr-agent → develop
+    │         (internal-only: rename, extract method, move file) implement โดยตรง → tests
+    │         → [Full Approval Gate] → pr-agent → develop
     │
     ├── [D] Schema change / migration
     │       → db-migration-agent → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
@@ -55,54 +61,62 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
     ├── [F] Chore / docs / dependency update
     │       → implement โดยตรง → [Lite Approval Gate] → pr-agent → develop
     │
-    ├── [G] Quick fix (< 5 lines, root cause ชัดเจน, ไม่กระทบ logic)
-    │       → implement โดยตรง → unit test → [Lite Approval Gate] → pr-agent → develop
-    │
-    └── [H] Hotfix (production incident — เร่งด่วน)
-            → implement โดยตรง → unit test → [Lite Approval Gate] → pr-agent → main (!)
-            ⚠️ PR target คือ main โดยตรง — ต้อง back-merge ไป develop หลัง merge
+    └── [H] Hotfix (production incident)
+            ⚠️ ใช้เมื่อ user พูดว่า "production", "incident", "down", "urgent fix" เท่านั้น
+            → implement โดยตรง → unit test → [Full Approval Gate] → pr-agent → main (!)
+            → หลัง merge: orchestrator สร้าง PR back-merge main → develop ทันที
 ```
 
-**PR target:** feat/fix/chore branches → PR ไปที่ **`develop`** เสมอ (ยกเว้น Path H → `main`)
+**PR target:** ทุก path → PR ไปที่ **`develop`** ยกเว้น Path H → `main`
 
 ---
 
-**Full Approval Gate** (Path A–D — งานที่มี logic หรือ schema change):
+**Full Approval Gate** (Path A–D, H — งานที่กระทบ runtime behavior):
 ```
 1. git log develop..HEAD --oneline    (commits ทั้งหมด)
 2. git diff develop --stat            (scope ของงาน)
-3. make test-e2e                      (บังคับ — app ต้องรันอยู่)
-4. ถาม user: "พร้อม create PR ไหม?"
+3. ถ้ามี E2E scripts ที่เกี่ยวข้อง (ls tests/e2e/) →
+   ถ้า app ไม่ได้รัน → ถาม user: "ต้องรัน E2E — เริ่ม app ให้เลยไหม?"
+   ถ้า user ตอบ yes → dotnet run ... & แล้วรอ health check pass
+   → make test-e2e
+4. ถาม user: "พร้อม create PR ไหม?" + แสดง summary
 5. รอ user ตอบก่อนเดินหน้า
     ↓ (user approve)
-quality-auditor-agent ──► pr-agent
+quality-auditor-agent (Path H ข้ามได้เพราะเร่งด่วน แต่ต้อง review หลัง merge ภายใน 24h)
+    ↓
+pr-agent
 ```
 
-**Lite Approval Gate** (Path E–G — low-risk: CI, docs, chore, quick fix):
+**Lite Approval Gate** (Path E, F — ไม่กระทบ runtime behavior):
 ```
 1. git log develop..HEAD --oneline    (commits ทั้งหมด)
 2. git diff develop --stat            (scope ของงาน)
-3. make test-e2e                      (ข้ามได้ถ้าไม่มี E2E scripts หรือไม่กระทบ API)
-4. ถาม user: "พร้อม create PR ไหม?"
-5. รอ user ตอบก่อนเดินหน้า
+3. ถาม user: "พร้อม create PR ไหม?"
+4. รอ user ตอบก่อนเดินหน้า
     ↓ (user approve)
-pr-agent (ข้าม quality-auditor-agent ได้สำหรับ Path F, G)
+pr-agent (ข้าม quality-auditor-agent)
 ```
 
 ---
 
 **Path selection rules:**
+- คำถาม / อ่าน code / วิเคราะห์ → Path Q (ไม่ต้อง PR)
 - New feature + ใช้เวลา > ครึ่งวัน หรือ unclear feasibility → Path A
-- feature-agent ใช้เมื่อ Path A มีทั้ง backend + frontend — ถ้าเป็นฝั่งเดียวใช้ specialist แทน
-- Bug ที่หาสาเหตุไม่เจอ → Path B + systematic-debugging skill
+- Bug fix ทุกขนาด → Path B (bug เล็กก็คือ Path B ไม่แยก path ให้สับสน)
 - Bug ที่ต้องการ schema change → Path B + Path D ทำต่อเนื่องกัน
-- Refactor > 3 ไฟล์ หรือเปลี่ยน architecture → Path C ผ่าน architect-agent
+- Refactor ที่เปลี่ยน public interface / port / adapter boundary → Path C ผ่าน architect-agent
+- Refactor ที่เป็น internal-only (rename, move, extract) → Path C ไม่ต้องผ่าน architect
 - ทุก schema change ไม่ว่าเล็กแค่ไหน → ผ่าน db-migration-agent เสมอ
 - **ถ้าสงสัยว่าเป็น path ไหน → ถาม user ก่อน route ห้ามเดาเอง**
 
+**feature-agent vs specialists — เกณฑ์เลือก:**
+- feature-agent: งานที่ backend + frontend ต้อง coordinate (เช่น API contract ใหม่ที่ frontend ต้องเรียก)
+- backend-engineer-agent + frontend-specialist-agent แยก: งานที่ 2 ฝั่งทำแยกได้ไม่ขึ้นกัน (เช่น backend webhook + frontend dashboard page ที่ไม่เกี่ยวกัน)
+- ถ้ามีแค่ฝั่งเดียว → specialist ตัวเดียว ไม่ต้องใช้ feature-agent
+
 **Hard rules:**
-- `architect-agent` บังคับสำหรับ Path A และ Path C (> 3 ไฟล์) เท่านั้น
-- `feature-agent` ใช้สำหรับ Path A ที่ครอบคลุมทั้ง backend + frontend เท่านั้น
+- `architect-agent` บังคับสำหรับ Path A และ Path C (เปลี่ยน public interface) เท่านั้น
+- `feature-agent` ใช้สำหรับ Path A ที่ backend + frontend ต้อง coordinate เท่านั้น
 - Human Approval Gate (Full หรือ Lite) บังคับก่อน PR ทุก path — ไม่มีข้อยกเว้น
 - ห้าม call `pr-agent` โดยไม่ผ่าน Human Approval Gate
 
@@ -264,16 +278,19 @@ migration: false              # true ถ้า PR มี Supabase migration
 
 ---
 
-## Pre-PR Checklist (Human Approval Gate — ทำครบก่อน create PR)
+## Pre-PR Checklist (Human Approval Gate)
 
 ขั้นตอนนี้ทำโดย **orchestrator ร่วมกับ user** ไม่ใช่ subagent ทำเองโดยอัตโนมัติ
 
+**ทุก path (Full + Lite):**
 - [ ] แสดง `git log develop..HEAD --oneline` ให้ user เห็น commits ทั้งหมด
 - [ ] แสดง `git diff develop --stat` ให้ user เห็น scope ของงาน
-- [ ] `make quality-gate` ผ่าน (lint + unit tests + AOT + changelog)
-- [ ] `make test-e2e` ผ่าน (app ต้องรันอยู่) — แสดงผลให้ user เห็น
-- [ ] `tests/e2e/{feature}.py` ถูก commit เข้า branch แล้ว
 - [ ] **User ตอบ "พร้อม create PR" อย่างชัดเจน** ← gate ตัวสุดท้าย
+
+**เพิ่มเติมสำหรับ Full Gate (Path A–D, H):**
+- [ ] `make quality-gate` ผ่าน (lint + unit tests + AOT + changelog)
+- [ ] `make test-e2e` ผ่าน — ถ้า app ไม่ได้รัน ให้ถาม user ก่อนเริ่ม
+- [ ] `tests/e2e/{feature}.py` ถูก commit เข้า branch แล้ว (ถ้า feature มี API endpoint)
 
 ---
 
