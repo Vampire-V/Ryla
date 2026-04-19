@@ -1,5 +1,6 @@
 ---
 name: orchestrator-agent
+model: opus
 description: Entry point for all Ryla development work when the correct specialist is unclear or when a task spans multiple layers. Use this agent when requests are ambiguous ("implement X", "help me with X", "build feature X end-to-end"). Do NOT use for clearly scoped tasks — route directly to the specialist (e.g., "write C# code" → backend-engineer-agent directly).
 tools: [Read, Glob, Grep, Bash, TodoRead, TodoWrite]
 ---

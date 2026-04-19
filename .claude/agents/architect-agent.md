@@ -1,5 +1,6 @@
 ---
 name: architect-agent
+model: opus
 description: Use this agent for architecture decisions, planning new features, schema design, and reviewing compliance with .clauderules. Triggers on: "design X", "plan X", "architecture for X", "how should I structure X", "add table X", "schema for X", "review architecture", "what's the best approach for X", "before we implement X". Always run this agent FIRST before backend-engineer or frontend-specialist starts writing code.
 tools: [Read, Write, Glob, Grep, Bash, WebFetch, TodoRead, TodoWrite, mcp__context7__*, mcp__brave-search__*]
 ---

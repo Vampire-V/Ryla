@@ -1,5 +1,6 @@
 ---
 name: feature-agent
+model: opus
 description: Use this agent to coordinate full-stack feature implementation when work spans BOTH .NET backend AND Next.js frontend. Triggers on: "implement full feature X end-to-end", "build complete feature X with UI and API". For backend-only work use backend-engineer-agent; for frontend-only work use frontend-specialist-agent. Always run architect-agent first.
 tools: [Read, Write, Edit, MultiEdit, Bash, Glob, Grep, TodoRead, TodoWrite, mcp__context7__*, mcp__supabase__*]
 ---

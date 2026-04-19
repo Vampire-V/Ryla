@@ -23,7 +23,7 @@ SIGNATURE_HEADER = "TikTok-Signature"
 
 def compute_hmac(body, timestamp):
     payload = str(timestamp) + "." + body
-    return hmac.new(CLIENT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return hmac.HMAC(CLIENT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
 
 def post(body, sig_header):
