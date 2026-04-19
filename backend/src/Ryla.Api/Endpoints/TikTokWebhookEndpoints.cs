@@ -94,10 +94,19 @@ internal static class TikTokWebhookEndpoints
             OrderId: orderId,
             EventType: payload.Event);
 
-        var result = await orderUseCase.ExecuteAsync(webhookCtx, ct);
-        logger.LogInformation(
-            "TikTok order processed: status={Status} detail={Detail}",
-            result.Status, result.Detail);
+        try
+        {
+            var result = await orderUseCase.ExecuteAsync(webhookCtx, ct);
+            logger.LogInformation(
+                "TikTok order processed: status={Status} detail={Detail}",
+                result.Status, result.Detail);
+        }
+        catch (Exception ex)
+        {
+            // Swallow — webhook ต้องคืน 200 เสมอ (กัน platform retry storm)
+            logger.LogError(ex, "TikTok order processing failed: shopId={ShopId} orderId={OrderId}",
+                shopId, orderId);
+        }
     }
 
     private static (string ShopId, string OrderId) ExtractOrderFields(

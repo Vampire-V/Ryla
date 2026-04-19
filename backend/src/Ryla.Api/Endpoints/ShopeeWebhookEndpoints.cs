@@ -107,10 +107,19 @@ internal static class ShopeeWebhookEndpoints
             OrderId: orderId,
             EventType: payload.Code.ToString());
 
-        var result = await orderUseCase.ExecuteAsync(webhookCtx, ct);
-        logger.LogInformation(
-            "Shopee order processed: status={Status} detail={Detail}",
-            result.Status, result.Detail);
+        try
+        {
+            var result = await orderUseCase.ExecuteAsync(webhookCtx, ct);
+            logger.LogInformation(
+                "Shopee order processed: status={Status} detail={Detail}",
+                result.Status, result.Detail);
+        }
+        catch (Exception ex)
+        {
+            // Swallow — webhook ต้องคืน 200 เสมอ (กัน platform retry storm)
+            logger.LogError(ex, "Shopee order processing failed: shopId={ShopId} orderId={OrderId}",
+                shopId, orderId);
+        }
     }
 
     private static string ExtractShopeeOrderId(ShopeeWebhookPayload payload, ILogger<Program> logger)
