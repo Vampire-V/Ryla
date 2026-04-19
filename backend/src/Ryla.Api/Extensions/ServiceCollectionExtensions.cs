@@ -12,6 +12,7 @@ namespace Ryla.Api.Extensions;
 // ทุก type ที่ผ่าน HTTP boundary ต้องลงทะเบียนที่นี่
 [JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(TikTokWebhookPayload))]
+[JsonSerializable(typeof(ShopeeWebhookPayload))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false)]
@@ -27,6 +28,11 @@ public static class ServiceCollectionExtensions
             configuration.GetSection(TikTokShopOptions.SectionName));
 
         services.AddScoped<ITikTokHmacVerifier, TikTokHmacVerifier>();
+
+        services.Configure<ShopeeOptions>(
+            configuration.GetSection(ShopeeOptions.SectionName));
+
+        services.AddScoped<IShopeeHmacVerifier, ShopeeHmacVerifier>();
 
         // TODO: ลงทะเบียน Core use cases ที่นี่ (explicit, ห้ามใช้ assembly scanning)
         return services;
