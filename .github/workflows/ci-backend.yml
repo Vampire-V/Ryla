@@ -2,6 +2,7 @@ name: CI — Backend (.NET 10)
 
 on:
   push:
+    branches: [main, develop]
     paths:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
