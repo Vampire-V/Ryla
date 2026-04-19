@@ -1,4 +1,4 @@
-pr: 0
+pr: 6
 type: feat
 scope: "api"
 title: "Shopee webhook receiver with HMAC-SHA256 verification"
