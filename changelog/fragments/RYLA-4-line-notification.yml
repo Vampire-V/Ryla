@@ -1,0 +1,12 @@
+pr: 0
+type: feat
+scope: "api"
+title: "LINE OA push notification adapter for TikTok + Shopee webhooks"
+description: |
+  เชื่อม inbound webhook (TikTok Shop, Shopee) → outbound LINE Messaging push
+  ผ่าน ProcessOrderWebhookUseCase + ConnectionRepository + LineMessagingClient
+  (hexagonal architecture). ใช้ existing connections(credentials jsonb) table
+  สำหรับ per-tenant credentials storage + partial functional index สำหรับ
+  reverse shop_id lookup. Webhook คืน 200 เสมอเพื่อกัน platform retry storm
+breaking: false
+migration: true
