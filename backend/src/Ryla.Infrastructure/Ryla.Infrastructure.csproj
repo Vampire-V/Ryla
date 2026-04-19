@@ -11,12 +11,19 @@
     <!-- DI + Configuration abstractions สำหรับ DependencyInjection.cs -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
     <!-- Npgsql v9: AOT-compatible ตั้งแต่ v8+ (ใช้ NpgsqlDataSourceBuilder แทน reflection-based config) -->
     <PackageReference Include="Npgsql" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Ryla.Core\Ryla.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- เปิด internal members ให้ Api layer register LineJsonContext ใน TypeInfoResolverChain ได้ -->
+    <InternalsVisibleTo Include="Ryla.Api" />
+    <InternalsVisibleTo Include="Ryla.Infrastructure.Tests" />
   </ItemGroup>
 
 </Project>
