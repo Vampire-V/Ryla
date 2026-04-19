@@ -15,7 +15,7 @@ if ! echo "$CMD" | grep -qE '^(git push|gh pr create)'; then
   exit 0
 fi
 
-PROJECT_ROOT="/Users/pipat/Documents/MiniProject/Ryla"
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 REVIEW_FILE="$PROJECT_ROOT/.claude/review-passed.json"
 BRANCH=$(cd "$PROJECT_ROOT" && git branch --show-current 2>/dev/null || echo '')
 

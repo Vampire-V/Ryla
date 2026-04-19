@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="/Users/pipat/Documents/MiniProject/Ryla"
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 REVIEW_FILE="$PROJECT_ROOT/.claude/review-passed.json"
 CURRENT_SHA=$(cd "$PROJECT_ROOT" && git rev-parse HEAD)
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")

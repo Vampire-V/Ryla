@@ -10,7 +10,7 @@ PROMPT=$(echo "$INPUT" | python3 -c \
   "import sys,json; d=json.load(sys.stdin); print(d.get('prompt', ''))" \
   2>/dev/null || echo '')
 PROMPT_LC=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
-PROJECT_ROOT="/Users/pipat/Documents/MiniProject/Ryla"
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
 # ── 1. Inject active sprint context ─────────────────────────────────────────
 # ทุก agent ได้รับ current sprint state โดยอัตโนมัติ
