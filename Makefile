@@ -234,6 +234,8 @@ security-check: ## ตรวจสอบ NuGet + npm vulnerabilities
 # ─────────────────────────────────────────────────────────────────────────────
 
 setup: ## Setup โปรเจคสำหรับ developer ใหม่
+	@echo "🔧 Configuring git hooks..."
+	git config core.hooksPath .githooks
 	@echo "📦 Installing frontend dependencies..."
 	$(NPM) ci --prefix $(FRONTEND)
 	@echo "📦 Restoring .NET packages..."
@@ -245,6 +247,8 @@ setup: ## Setup โปรเจคสำหรับ developer ใหม่
 	@echo "   3. make db-reset     (apply migrations + seed)"
 	@echo "   4. make setup-secrets (ตั้งค่า dotnet user-secrets)"
 	@echo "   5. make dev          (เริ่ม development)"
+	@echo ""
+	@echo "   ℹ️  Git hooks ตั้งแล้ว — push ตรงไป main/develop จะถูกบล็อก"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Workflow Automation

@@ -113,45 +113,112 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   # JOB: All Checks Must Pass
   #
-  # This job waits for ci-backend and ci-frontend to complete,
-  # then acts as a single required check for branch protection.
+  # ใช้ GitHub Checks API poll สถานะ check runs จาก CI workflows อื่นๆ
+  # เพราะ `needs:` ไม่สามารถ cross-reference ข้าม workflow files ได้
   #
-  # Branch protection setting:
+  # Branch protection setting (เมื่อ upgrade เป็น Pro):
   #   Required status checks → "Quality Gate / All Checks Passed"
   # ─────────────────────────────────────────────────────────────
   all-checks-passed:
     name: All Checks Passed
     runs-on: ubuntu-latest
+    needs: [changelog-fragment]
+    if: always()
 
     steps:
-      - name: Check — backend CI status
+      - name: Wait for all CI checks to complete
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # ตรวจสอบว่า CI jobs ทั้งหมดที่เกี่ยวข้องผ่าน
-          echo "✅ ESLint gate:           enforced in ci-frontend.yml (--max-warnings 0)"
-          echo "✅ TypeScript gate:        enforced in ci-frontend.yml (tsc --noEmit)"
-          echo "✅ dotnet format gate:     enforced in ci-backend.yml (--verify-no-changes)"
-          echo "✅ Test coverage gate:     enforced in ci-backend.yml + ci-frontend.yml (≥ 80%)"
-          echo "✅ AOT build gate:         enforced in ci-backend.yml (/warnaserror)"
-          echo "✅ Secret scanning:        enforced in security-scan.yml (Gitleaks)"
-          echo "✅ Dependency audit:       enforced in security-scan.yml (High/Critical → fail)"
-          echo ""
-          echo "All quality gates are enforced by upstream jobs."
-          echo "This job succeeds only when all required workflows pass."
+          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          REPO="${{ github.repository }}"
+          SELF_NAME="All Checks Passed"
+          MAX_ATTEMPTS=20   # 20 × 30s = 10 นาที max
+          SLEEP_SEC=30
 
-      - name: Summary
+          echo "🔍 Waiting for check runs on $SHA..."
+          echo ""
+
+          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+            # ดึง check runs ทั้งหมด ยกเว้นตัวเอง
+            PENDING=$(gh api "repos/$REPO/commits/$SHA/check-runs" \
+              --paginate \
+              --jq "[.check_runs[] | select(.name != \"$SELF_NAME\" and .status != \"completed\")] | length")
+
+            if [ "$PENDING" = "0" ]; then
+              echo "✅ All checks completed"
+              break
+            fi
+
+            echo "⏳ $PENDING check(s) still running... (attempt $attempt/$MAX_ATTEMPTS)"
+            sleep $SLEEP_SEC
+          done
+
+          if [ "$PENDING" != "0" ]; then
+            echo "⚠️  Timed out waiting for checks to complete"
+          fi
+
+      - name: Verify all checks passed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "## Quality Gate Summary" >> $GITHUB_STEP_SUMMARY
+          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          REPO="${{ github.repository }}"
+          SELF_NAME="All Checks Passed"
+
+          echo "## Quality Gate Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Threshold | Workflow |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| C# Formatting | Zero violations | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| ESLint | Zero warnings | ci-frontend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| TypeScript | Zero errors | ci-frontend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend Coverage | ≥ 80% | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend Coverage | ≥ 80% | ci-frontend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Native AOT Build | Zero IL warnings | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Secret Detection | Zero secrets | security-scan.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerability Audit | No High/Critical | security-scan.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Changelog Fragment | Required per PR | quality-gate.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+
+          # ดึงผลลัพธ์ทั้งหมด
+          CHECKS=$(gh api "repos/$REPO/commits/$SHA/check-runs" \
+            --paginate \
+            --jq ".check_runs[] | select(.name != \"$SELF_NAME\") | \"\(.conclusion)\t\(.name)\"")
+
+          FAILED=0
+          while IFS=$'\t' read -r conclusion name; do
+            [ -z "$name" ] && continue
+            case "$conclusion" in
+              success)
+                echo "  ✅ $name"
+                echo "| $name | ✅ pass |" >> $GITHUB_STEP_SUMMARY
+                ;;
+              skipped)
+                echo "  ⏭️  $name (skipped)"
+                echo "| $name | ⏭️ skipped |" >> $GITHUB_STEP_SUMMARY
+                ;;
+              failure)
+                echo "  ❌ $name"
+                echo "| $name | ❌ **FAIL** |" >> $GITHUB_STEP_SUMMARY
+                FAILED=$((FAILED + 1))
+                ;;
+              *)
+                echo "  ⚠️  $name ($conclusion)"
+                echo "| $name | ⚠️ $conclusion |" >> $GITHUB_STEP_SUMMARY
+                ;;
+            esac
+          done <<< "$CHECKS"
+
+          # Changelog fragment check (from this workflow)
+          CL_RESULT="${{ needs.changelog-fragment.result }}"
+          if [ "$CL_RESULT" = "failure" ]; then
+            echo "  ❌ Changelog Fragment"
+            echo "| Changelog Fragment | ❌ **FAIL** |" >> $GITHUB_STEP_SUMMARY
+            FAILED=$((FAILED + 1))
+          elif [ "$CL_RESULT" = "success" ]; then
+            echo "  ✅ Changelog Fragment"
+            echo "| Changelog Fragment | ✅ pass |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo ""
+          if [ "$FAILED" -gt 0 ]; then
+            echo "❌ QUALITY GATE FAILED — $FAILED check(s) failed"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**❌ QUALITY GATE FAILED** — $FAILED check(s) failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          echo "✅ QUALITY GATE PASSED — all checks green"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**✅ QUALITY GATE PASSED**" >> $GITHUB_STEP_SUMMARY
