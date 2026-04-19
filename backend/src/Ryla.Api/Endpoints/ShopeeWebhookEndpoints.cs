@@ -9,6 +9,7 @@ using Ryla.Api.Extensions;
 using Ryla.Core.Configuration;
 using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
+using Ryla.Core.UseCases;
 
 namespace Ryla.Api.Endpoints;
 
@@ -18,7 +19,7 @@ internal static class ShopeeWebhookEndpoints
         this IEndpointRouteBuilder app)
     {
         app.MapPost("/webhooks/shopee", ReceiveWebhook)
-            .AllowAnonymous() // webhook ไม่มี user auth — ใช้ HMAC signature แทน
+            .AllowAnonymous() // Public — HMAC signature verified in handler
             .WithName("ReceiveShopeeWebhook")
             .WithSummary("Shopee webhook receiver")
             .WithDescription("รับ push notification จาก Shopee Open Platform พร้อม HMAC verification")
@@ -26,7 +27,7 @@ internal static class ShopeeWebhookEndpoints
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status422UnprocessableEntity)
-            .WithMetadata(new RequestSizeLimitAttribute(1_048_576)); // 1MB — webhooks are small
+            .WithMetadata(new RequestSizeLimitAttribute(1_048_576)); // 1MB
 
         return app;
     }
@@ -35,6 +36,7 @@ internal static class ShopeeWebhookEndpoints
         HttpContext ctx,
         IShopeeHmacVerifier verifier,
         IOptions<ShopeeOptions> options,
+        IProcessOrderWebhookUseCase orderUseCase,
         ILogger<Program> logger)
     {
         // อ่าน raw body เพื่อ HMAC verification
@@ -70,7 +72,7 @@ internal static class ShopeeWebhookEndpoints
             return Results.UnprocessableEntity();
         }
 
-        // Replay protection: timestamp อยู่ใน body (ต่างจาก TikTok ที่อยู่ใน header)
+        // Replay protection: timestamp อยู่ใน body
         var nowUnixSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (Math.Abs(nowUnixSeconds - payload.Timestamp) > options.Value.MaxAgeSeconds)
         {
@@ -84,6 +86,49 @@ internal static class ShopeeWebhookEndpoints
             "Shopee webhook received: code={Code} shopId={ShopId} timestamp={Timestamp}",
             payload.Code, payload.ShopId, payload.Timestamp);
 
+        // Process order event — ไม่ fail webhook ถ้า use case error
+        await ProcessOrderEventAsync(payload, orderUseCase, logger, ctx.RequestAborted);
+
         return Results.Ok();
+    }
+
+    private static async Task ProcessOrderEventAsync(
+        ShopeeWebhookPayload payload,
+        IProcessOrderWebhookUseCase orderUseCase,
+        ILogger<Program> logger,
+        CancellationToken ct)
+    {
+        var shopId = payload.ShopId.ToString();
+        var orderId = ExtractShopeeOrderId(payload, logger);
+
+        var webhookCtx = new OrderWebhookContext(
+            Platform: Platform.Shopee,
+            ShopId: shopId,
+            OrderId: orderId,
+            EventType: payload.Code.ToString());
+
+        var result = await orderUseCase.ExecuteAsync(webhookCtx, ct);
+        logger.LogInformation(
+            "Shopee order processed: status={Status} detail={Detail}",
+            result.Status, result.Detail);
+    }
+
+    private static string ExtractShopeeOrderId(ShopeeWebhookPayload payload, ILogger<Program> logger)
+    {
+        try
+        {
+            if (payload.Data.ValueKind == System.Text.Json.JsonValueKind.Object
+                && payload.Data.TryGetProperty("ordersn", out var ordersnElem))
+            {
+                var ordersn = ordersnElem.GetString();
+                return string.IsNullOrEmpty(ordersn) ? "unknown" : ordersn;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Shopee webhook: failed to extract ordersn from data");
+        }
+
+        return "unknown";
     }
 }

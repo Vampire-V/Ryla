@@ -5,6 +5,8 @@ using Ryla.Api.Endpoints;
 using Ryla.Core.Configuration;
 using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
+using Ryla.Core.UseCases;
+using Ryla.Infrastructure.Adapters.LineMessaging;
 
 namespace Ryla.Api.Extensions;
 
@@ -12,6 +14,7 @@ namespace Ryla.Api.Extensions;
 // ทุก type ที่ผ่าน HTTP boundary ต้องลงทะเบียนที่นี่
 [JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(TikTokWebhookPayload))]
+[JsonSerializable(typeof(TikTokOrderContent))]
 [JsonSerializable(typeof(ShopeeWebhookPayload))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
@@ -34,7 +37,15 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IShopeeHmacVerifier, ShopeeHmacVerifier>();
 
-        // TODO: ลงทะเบียน Core use cases ที่นี่ (explicit, ห้ามใช้ assembly scanning)
+        // ─── Core use cases ───────────────────────────────────────────────────
+        services.AddRylaCoreUseCases();
+
+        // ─── LINE Options + JSON context ──────────────────────────────────────
+        services.Configure<LineOptions>(configuration.GetSection("Line"));
+
+        services.ConfigureHttpJsonOptions(opts =>
+            opts.SerializerOptions.TypeInfoResolverChain.Insert(0, LineJsonContext.Default));
+
         return services;
     }
 }
