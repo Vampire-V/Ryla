@@ -84,15 +84,28 @@ These rules are NON-NEGOTIABLE for `Ryla.Api` and `Ryla.Infrastructure`:
 
 ## Workflow Rules
 
-### Branching Strategy
+### Branching Strategy (Gitflow)
 
 ```
-main          ← production-ready, protected
-└── develop   ← integration branch
-    └── feat/RYLA-{ticket}-{slug}   ← feature branches
-    └── fix/RYLA-{ticket}-{slug}    ← bug fix branches
-    └── chore/{slug}                ← tooling, CI, docs
+main (production, tagged v0.1.0, v0.2.0...)
+├── release/v0.2.0              ← stabilization, bug fixes ก่อน merge เข้า main
+│   └── develop                 ← integration branch (default PR target)
+│       ├── feat/RYLA-{ticket}-{slug}   ← feature branches
+│       ├── fix/RYLA-{ticket}-{slug}    ← bug fix branches
+│       └── chore/{slug}                ← tooling, CI, docs
+└── hotfix/v0.1.1               ← urgent fix จาก main โดยตรง
 ```
+
+**Flow:**
+1. `feat/*`, `fix/*`, `chore/*` → PR → `develop`
+2. พร้อม release: สร้าง `release/vX.Y.Z` จาก `develop` (feature freeze)
+3. `release/vX.Y.Z` → PR → `main` + tag `vX.Y.Z` + `make release`
+4. Back-merge `main` → `develop`
+5. Hotfix: `hotfix/*` จาก `main` → PR → `main` + tag + back-merge `develop`
+
+**Version convention:** Semantic Versioning (v{MAJOR}.{MINOR}.{PATCH})
+
+**Protection:** Pre-push hook บล็อก push ตรงไป main/develop (`.githooks/pre-push`)
 
 ### Commit Convention (Conventional Commits)
 

@@ -3,8 +3,8 @@
 
 ## Current Sprint Focus
 <!-- Feature หรือ milestone ที่กำลังทำอยู่ -->
-- [x] [RYLA-2] TikTok Shop webhook receiver — HMAC verify + order event processing — completed 2026-04-19
-- [x] [RYLA-1] Tenant Onboarding — completed, PR #1 open for review
+- [x] [RYLA-2] TikTok Shop webhook receiver — merged to main, tagged v0.1.0
+- [x] [RYLA-1] Tenant Onboarding — merged to main, tagged v0.1.0
 - [x] [RYLA-0] Health Check Endpoint — already done in initial setup
 
 ## Last 3 Completed Tasks
@@ -14,7 +14,10 @@
 
 ## Active Branch
 <!-- อัพเดทเมื่อเริ่ม feature ใหม่ -->
-- `feat/RYLA-2-tiktok-webhook` — ready for PR
+- `develop` — integration branch (Gitflow)
+
+## Latest Release
+- `v0.1.0` — Health Check + Tenant Onboarding + TikTok Shop Webhook (2026-04-19)
 
 ## Known Blockers
 - None
