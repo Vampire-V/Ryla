@@ -24,6 +24,9 @@ public static class DependencyInjection
         services.AddSingleton<IDbConnectionFactory>(
             new NpgsqlConnectionFactory(connectionString));
 
+        // Startup probe: fail-fast ถ้า DB unreachable (รันก่อน Kestrel)
+        services.AddHostedService<DbStartupProbe>();
+
         // ─── Adapters ────────────────────────────────────────────────────────────
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IConnectionRepository, ConnectionRepository>();
