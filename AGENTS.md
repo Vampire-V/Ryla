@@ -23,35 +23,65 @@
 
 ## Communication Protocol
 
+orchestrator-agent จัดประเภท request และเลือก path ที่เหมาะสม:
+
 ```
 User Request
     │
     ▼
 orchestrator-agent  ←── reads .claude/memory/active-context.md
     │
-    ├── Simple/clear request ──► route directly to specialist
+    ├── [A] New feature (non-trivial)
+    │       → architect-agent → implement agents → [Human Approval Gate] → PR
     │
-    └── New feature ──► architect-agent (ALWAYS FIRST)
-                            │
-                            ├──► backend-engineer-agent   (C# implementation, commits freely)
-                            ├──► frontend-specialist-agent (Next.js UI, commits freely)
-                            ├──► db-migration-agent        (schema change, commits freely)
-                            │
-                            │   [autonomous zone ends here]
-                            │
-                            ├──► Human Approval Gate ◄─── MANDATORY — ห้ามข้าม
-                            │       1. แสดง git log + git diff --stat ให้ user เห็น
-                            │       2. รัน make test-e2e + แสดงผล
-                            │       3. ถาม user: "พร้อม create PR ไหม?"
-                            │       4. รอ user ตอบก่อนเดินหน้า
-                            │
-                            └──► (user approve) ──► quality-auditor-agent ──► pr-agent
+    ├── [B] Bug fix
+    │       → systematic-debugging (ถ้าหาสาเหตุไม่เจอ) → backend/frontend-agent
+    │         → unit test → [Human Approval Gate] → PR
+    │
+    ├── [C] Refactor
+    │       → (ถ้าใหญ่) architect-agent → implement agents → all tests
+    │         → [Human Approval Gate] → PR
+    │         (ถ้าเล็ก/ชัดเจน) → implement agents โดยตรง → tests → [Human Approval Gate] → PR
+    │
+    ├── [D] Schema change / migration
+    │       → db-migration-agent → [Human Approval Gate] → PR
+    │
+    ├── [E] CI / DevOps / infra
+    │       → devops-orchestrator-agent → [Human Approval Gate] → PR
+    │
+    ├── [F] Chore / docs / dependency update
+    │       → implement โดยตรง → [Human Approval Gate] → PR
+    │
+    └── [G] Quick fix (< 5 lines, เห็นปัญหาชัด)
+            → implement โดยตรง → unit test → [Human Approval Gate] → PR
 ```
 
+**Human Approval Gate** (ทุก path ต้องผ่านก่อน PR):
+```
+[autonomous zone ends]
+    │
+    ▼
+1. git log main..HEAD --oneline   (commits ทั้งหมด)
+2. git diff main --stat           (scope ของงาน)
+3. make test-e2e                  (ถ้ามี E2E scripts สำหรับ feature นี้)
+4. ถาม user: "พร้อม create PR ไหม?"
+5. รอ user ตอบก่อนเดินหน้า
+    │
+    ▼ (user approve)
+quality-auditor-agent ──► pr-agent
+```
+
+**Path selection rules:**
+- New feature + ใช้เวลา > ครึ่งวัน หรือ unclear feasibility → Path A (RPI workflow)
+- Bug ที่หาสาเหตุไม่เจอ → Path B พร้อม systematic-debugging
+- Refactor > 3 ไฟล์ หรือเปลี่ยน architecture → Path C ผ่าน architect-agent
+- ทุก schema change ไม่ว่าเล็กแค่ไหน → Path D เสมอ
+- ทุก path ที่สร้าง PR → ผ่าน Human Approval Gate เสมอ
+
 **Hard rules:**
-- `architect-agent` ต้อง approve plan ก่อน implement ทุกครั้ง — ไม่มีข้อยกเว้น
-- Human Approval Gate ต้องผ่านก่อน `quality-auditor-agent` และ `pr-agent` — ไม่มีข้อยกเว้น
-- ห้าม call `finishing-a-development-branch` โดยตรงโดยไม่ผ่าน Human Approval Gate ก่อน
+- `architect-agent` บังคับสำหรับ Path A และ Path C (large refactor) เท่านั้น
+- Human Approval Gate บังคับก่อน PR ทุก path — ไม่มีข้อยกเว้น
+- ห้าม call `finishing-a-development-branch` หรือ `pr-agent` โดยไม่ผ่าน Human Approval Gate
 
 ---
 
