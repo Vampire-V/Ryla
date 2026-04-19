@@ -33,6 +33,7 @@ public sealed class TikTokHmacVerifier : ITikTokHmacVerifier
         int maxAgeSeconds = 300)
     {
         if (string.IsNullOrEmpty(signatureHeader)) return false;
+        if (string.IsNullOrEmpty(rawBody)) return false;
 
         // Parse "t={timestamp},s={hex_signature}"
         string? timestamp = null;
