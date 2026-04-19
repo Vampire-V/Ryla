@@ -69,6 +69,15 @@
             "command": "input=$(cat); cmd=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('tool_input', d).get('command', ''))\" 2>/dev/null || echo ''); if echo \"$cmd\" | grep -qE '^git commit'; then cd /Users/pipat/Documents/MiniProject/Ryla && dotnet format backend/Ryla.slnx --verify-no-changes --severity error 2>&1 || (echo 'BLOCKED: C# formatting violations found. Run: make lint-fix' >&2 && exit 2); fi"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/pipat/Documents/MiniProject/Ryla/.claude/hooks/pre-pr-gate.sh"
+          }
+        ]
       }
     ]
   },
@@ -76,7 +85,9 @@
     "frontend-design@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "github@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true
+    "code-review@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "data-engineering@claude-plugins-official": true
   },
   "mcpServers": {
     "supabase": {

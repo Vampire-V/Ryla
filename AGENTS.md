@@ -37,23 +37,31 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
     │
     ├── [A] New feature (non-trivial)
     │       → architect-agent → implement (ดูเกณฑ์ feature-agent ด้านล่าง)
-    │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
+    │         → [Full Approval Gate] → quality-auditor-agent
+    │           ├── ✅ PASS → pr-agent → develop
+    │           └── ❌ FAIL → ตีกลับ agent ที่เหมาะสม → แก้ → re-audit (วน loop)
     │
     ├── [B] Bug fix
     │       → ลอง fix เองก่อน (อ่าน error, trace code, ลอง reproduce)
     │         → ถ้าหลัง 2 attempts ยังไม่พบ root cause → systematic-debugging skill
     │         → backend/frontend-agent → unit test
-    │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
+    │         → [Full Approval Gate] → quality-auditor-agent
+    │           ├── ✅ PASS → pr-agent → develop
+    │           └── ❌ FAIL → ตีกลับ agent ที่เหมาะสม → แก้ → re-audit (วน loop)
     │         ⚠️ ถ้า bug fix ต้องการ schema change → ผ่าน db-migration-agent ด้วย
     │
     ├── [C] Refactor
     │       → (เปลี่ยน public interface หรือ layer boundary) architect-agent → implement → all tests
-    │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
+    │         → [Full Approval Gate] → quality-auditor-agent
+    │           ├── ✅ PASS → pr-agent → develop
+    │           └── ❌ FAIL → ตีกลับ agent ที่เหมาะสม → แก้ → re-audit (วน loop)
     │         (internal-only: rename, extract method, move file) implement โดยตรง → all tests
-    │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
+    │         → [Full Approval Gate] → quality-auditor-agent → (same rejection loop)
     │
     ├── [D] Schema change / migration
-    │       → db-migration-agent → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
+    │       → db-migration-agent → [Full Approval Gate] → quality-auditor-agent
+    │           ├── ✅ PASS → pr-agent → develop
+    │           └── ❌ FAIL → ตีกลับ db-migration/backend-agent → แก้ → re-audit
     │
     ├── [E] CI / DevOps / infra
     │       → devops-orchestrator-agent → [Lite Approval Gate] → pr-agent → develop
@@ -85,8 +93,22 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
 5. รอ user ตอบก่อนเดินหน้า
     ↓ (user approve)
 quality-auditor-agent (Path H ข้ามได้เพราะเร่งด่วน แต่ต้อง review หลัง merge ภายใน 24h)
-    ↓
-pr-agent
+    ├── ✅ PASS (no CRITICAL/HIGH findings)
+    │   → รัน .claude/hooks/create-review-stamp.sh (สร้าง review-passed.json)
+    │   ↓
+    │   pr-agent (hook pre-pr-gate.sh ตรวจ review stamp ก่อน push)
+    │
+    └── ❌ FAIL (CRITICAL/HIGH findings)
+        → Rejection Loop:
+          1. จำแนก finding ตาม dimension แล้ว dispatch agent ที่เหมาะสม:
+             - Security/AOT/Performance → backend-engineer-agent
+             - Architecture/Design       → architect-agent
+             - Test coverage gaps         → backend/frontend-agent
+             - Schema/RLS issues          → db-migration-agent
+          2. Agent แก้ไข + commit + run tests
+          3. Re-run quality-auditor-agent (เฉพาะ dimension ที่ fail)
+          4. ถ้ายังมี CRITICAL/HIGH → กลับไปข้อ 1 (loop)
+          5. ถ้า PASS ทุก dimension → pr-agent
 ```
 
 **Lite Approval Gate** (Path E, F — ไม่กระทบ runtime behavior):
@@ -121,6 +143,8 @@ pr-agent (ข้าม quality-auditor-agent)
 - `feature-agent` ใช้สำหรับ Path A ที่ backend + frontend ต้อง coordinate เท่านั้น
 - Human Approval Gate (Full หรือ Lite) บังคับก่อน PR ทุก path — ไม่มีข้อยกเว้น
 - ห้าม call `pr-agent` โดยไม่ผ่าน Human Approval Gate
+- **quality-auditor-agent FAIL → ห้ามไป pr-agent** ต้อง rejection loop จนกว่า PASS (ไม่มี CRITICAL/HIGH)
+- **ห้ามข้าม rejection loop** — ถ้า auditor พบ CRITICAL/HIGH ต้องตีกลับไป agent ที่เหมาะสมเพื่อแก้ไข
 
 ---
 

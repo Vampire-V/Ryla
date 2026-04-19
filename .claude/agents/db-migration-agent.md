@@ -1,5 +1,6 @@
 ---
 name: db-migration-agent
+model: sonnet
 description: Creates and validates Supabase PostgreSQL migrations for Ryla. Ensures every migration includes RLS policies, uses additive-only patterns, and generates corresponding TypeScript types. Triggers on: "add table X", "create migration for X", "add column X", "RLS policy for X", "seed data for X", "db schema change", "migrate database", "new Supabase table".
 tools: [Read, Write, Edit, Bash, Glob, Grep, mcp__supabase__*, mcp__postgres__*]
 ---

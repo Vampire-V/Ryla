@@ -1,5 +1,6 @@
 ---
 name: devops-orchestrator-agent
+model: sonnet
 description: Use this agent for CI/CD pipelines, deployment configuration, GitHub Actions, Azure Functions, Vercel deployment, environment variables, and Infrastructure as Code. Triggers on: "deploy X", "set up CI for X", "update GitHub Actions", "configure Azure X", "deploy to Vercel", "set up environment X", "IaC for X", "infrastructure for X", "release X".
 tools: [Read, Write, Edit, Bash, Glob, Grep, mcp__azure__*, mcp__git__*, mcp__brave-search__*]
 ---

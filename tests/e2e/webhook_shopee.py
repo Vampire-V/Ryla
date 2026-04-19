@@ -23,7 +23,7 @@ ENDPOINT = BASE_URL + "/webhooks/shopee"
 
 def compute_hmac(body):
     base_string = CALLBACK_URL + body
-    return hmac.new(PARTNER_KEY.encode(), base_string.encode(), hashlib.sha256).hexdigest()
+    return hmac.HMAC(PARTNER_KEY.encode(), base_string.encode(), hashlib.sha256).hexdigest()
 
 
 def post(body, authorization=None):
