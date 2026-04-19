@@ -19,6 +19,11 @@
 ## Latest Release
 - `v0.1.0` — Health Check + Tenant Onboarding + TikTok Shop Webhook (2026-04-19)
 
+## Repo Status
+- **Visibility:** Public (เปลี่ยนจาก private 2026-04-19)
+- **Branch protection:** main + develop require PR + `All Checks Passed` + `Test & Coverage Gate` + `Native AOT Build`
+- **CI:** เขียวทุก check รวม security scan (CodeQL, Gitleaks, npm/NuGet audit)
+
 ## Known Blockers
 - None
 
