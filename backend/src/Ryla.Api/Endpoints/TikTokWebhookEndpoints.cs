@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Ryla.Api.Extensions;
 using Ryla.Core.Configuration;
+using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
 
 namespace Ryla.Api.Endpoints;
@@ -48,8 +49,18 @@ internal static class TikTokWebhookEndpoints
             return Results.Unauthorized();
         }
 
-        // Parse payload
-        var payload = JsonSerializer.Deserialize(rawBody, RylaJsonContext.Default.TikTokWebhookPayload);
+        // Parse payload — จับ JsonException เพื่อ return 422 แทน 500
+        TikTokWebhookPayload? payload;
+        try
+        {
+            payload = JsonSerializer.Deserialize(rawBody, RylaJsonContext.Default.TikTokWebhookPayload);
+        }
+        catch (JsonException ex)
+        {
+            logger.LogWarning(ex, "TikTok Shop webhook: invalid JSON payload");
+            return Results.UnprocessableEntity();
+        }
+
         if (payload is null)
         {
             logger.LogWarning("TikTok Shop webhook: failed to parse payload");
