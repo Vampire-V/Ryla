@@ -49,8 +49,8 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
     ├── [C] Refactor
     │       → (เปลี่ยน public interface หรือ layer boundary) architect-agent → implement → all tests
     │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
-    │         (internal-only: rename, extract method, move file) implement โดยตรง → tests
-    │         → [Full Approval Gate] → pr-agent → develop
+    │         (internal-only: rename, extract method, move file) implement โดยตรง → all tests
+    │         → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
     │
     ├── [D] Schema change / migration
     │       → db-migration-agent → [Full Approval Gate] → quality-auditor-agent → pr-agent → develop
@@ -64,7 +64,9 @@ orchestrator-agent  ←── reads .claude/memory/active-context.md
     └── [H] Hotfix (production incident)
             ⚠️ ใช้เมื่อ user พูดว่า "production", "incident", "down", "urgent fix" เท่านั้น
             → implement โดยตรง → unit test → [Full Approval Gate] → pr-agent → main (!)
-            → หลัง merge: orchestrator สร้าง PR back-merge main → develop ทันที
+            → หลัง merge: orchestrator สร้าง PR back-merge main → develop
+              (ถ้า merge ไม่มี conflict → auto-merge ได้ไม่ต้องผ่าน gate)
+              (ถ้ามี conflict → ใช้ Path C internal-only เพื่อ resolve)
 ```
 
 **PR target:** ทุก path → PR ไปที่ **`develop`** ยกเว้น Path H → `main`
