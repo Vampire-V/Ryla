@@ -90,10 +90,11 @@ jobs:
             --configuration Release \
             --no-build \
             --collect:"XPlat Code Coverage" \
+            --settings backend/coverage.runsettings \
             --results-directory ./coverage \
             --logger "trx;LogFileName=results.trx" \
             --logger "console;verbosity=normal"
-        # coverlet.collector (XPlat Code Coverage) outputs cobertura XML
+        # coverage.runsettings excludes source-generated code จาก coverage
 
       - name: Generate consolidated coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5

@@ -8,7 +8,8 @@ on:
 
 permissions:
   contents: read
-  security-events: write # สำหรับ upload SARIF results
+  actions: read           # สำหรับ CodeQL workflow status check
+  security-events: write  # สำหรับ upload SARIF results
 
 jobs:
   # ─────────────────────────────────────────────────────────────
