@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Ryla.Core.Ports.Outbound;
 using Ryla.Infrastructure.Adapters.Database;
+using Ryla.Infrastructure.Adapters.Tenants;
 
 namespace Ryla.Infrastructure;
 
@@ -21,9 +23,8 @@ public static class DependencyInjection
             new NpgsqlConnectionFactory(connectionString));
 
         // ─── Adapters ────────────────────────────────────────────────────────────
-        // TODO: ลงทะเบียน adapters ที่นี่เมื่อสร้าง (explicit, ห้ามใช้ assembly scanning)
-        // ตัวอย่าง: services.AddScoped<INotificationPort, LineOaAdapter>();
-        // ตัวอย่าง: services.AddScoped<ITenantRepository, NpgsqlTenantRepository>();
+        // Tenant repository: Scoped เพราะแต่ละ request ควรได้ connection ใหม่
+        services.AddScoped<ITenantRepository, TenantRepository>();
 
         return services;
     }

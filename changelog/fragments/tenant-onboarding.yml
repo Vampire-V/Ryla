@@ -1,0 +1,10 @@
+pr: 1
+type: feat
+scope: "supabase"
+title: "Auto-provision tenant and profile on user signup"
+description: |
+  เพิ่ม PostgreSQL trigger function (handle_new_user) ที่สร้าง tenant row
+  และ profile row อัตโนมัติเมื่อ user สมัครผ่าน Supabase Auth พร้อม RLS
+  policy บน tenants table และ ITenantRepository adapter สำหรับ .NET backend
+breaking: false
+migration: true
