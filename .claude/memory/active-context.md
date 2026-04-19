@@ -3,19 +3,22 @@
 
 ## Current Sprint Focus
 <!-- Feature หรือ milestone ที่กำลังทำอยู่ -->
-- [ ] Setup: AI Orchestration Layer (agents, hooks, memory) — completed 2026-04-07
+- [x] [RYLA-2] TikTok Shop webhook receiver — HMAC verify + order event processing — completed 2026-04-19
+- [x] [RYLA-1] Tenant Onboarding — completed, PR #1 open for review
+- [x] [RYLA-0] Health Check Endpoint — already done in initial setup
 
 ## Last 3 Completed Tasks
-1. AI Orchestration Layer setup — agents + hooks + Makefile + memory (2026-04-07)
-2. (empty — project just initialized)
-3. (empty)
+1. [RYLA-2] TikTok Shop webhook receiver — HMAC-SHA256 + replay protection + 9/9 E2E pass (2026-04-19)
+2. [RYLA-1] Tenant Onboarding — PostgreSQL trigger + ITenantRepository + 12 integration tests (2026-04-16)
+3. AI Orchestration Layer setup — agents + hooks + Makefile + memory (2026-04-07)
 
 ## Active Branch
 <!-- อัพเดทเมื่อเริ่ม feature ใหม่ -->
-- `main` (no active feature branch yet)
+- `feat/RYLA-2-tiktok-webhook` — ready for PR
 
 ## Known Blockers
 - None
 
 ## Next Up
-- Implement first feature: ดู `feature-state.md` สำหรับ backlog
+- **Shopee webhook receiver** — HMAC verify + order status change
+- **LINE OA push notification adapter** — outbound LINE Messaging API

@@ -32,15 +32,15 @@ _(ยังไม่มี feature ที่กำลัง implement)_
 ## Completed
 
 - AI Orchestration Layer (agents + hooks + Makefile + memory) — 2026-04-07
+- **[RYLA-0] Health Check Endpoint** — `GET /health` AOT-safe, 3 tests — initial setup
+- **[RYLA-1] Tenant Onboarding** — PostgreSQL trigger auto-provision tenant+profile on signup — PR #1 — 2026-04-16
+- **[RYLA-2] TikTok Shop Webhook Receiver** — HMAC-SHA256 + replay protection + 9/9 E2E — branch feat/RYLA-2-tiktok-webhook — 2026-04-19
 
 ---
 
 ## Backlog (Priority Order)
 
-1. **Health check endpoint** — `GET /health` → `{ status, timestamp }` (no auth required)
-2. **Tenant onboarding** — create tenant + profile via Supabase Auth webhook
-3. **TikTok Shop webhook receiver** — HMAC verify + order event processing
-4. **Shopee webhook receiver** — HMAC verify + order status change
-5. **LINE OA push notification adapter** — outbound LINE Messaging API
-6. **Google Sheets append row adapter** — outbound Google Sheets API
-7. **Flow configuration UI** — dashboard page for connecting platforms
+1. **Shopee webhook receiver** — HMAC verify + order status change
+2. **LINE OA push notification adapter** — outbound LINE Messaging API
+3. **Google Sheets append row adapter** — outbound Google Sheets API
+4. **Flow configuration UI** — dashboard page for connecting platforms
