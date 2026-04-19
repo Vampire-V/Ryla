@@ -15,7 +15,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // OpenAPI — built-in .NET 10 (AOT-compatible, ไม่ใช้ Swashbuckle)
 builder.Services.AddOpenApi();
 
-builder.Services.AddRylaCoreServices();
+builder.Services.AddRylaCoreServices(builder.Configuration);
 builder.Services.AddRylaInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
@@ -25,5 +25,6 @@ var app = builder.Build();
 app.MapOpenApi();
 
 app.MapHealthEndpoints();
+app.MapTikTokWebhookEndpoints();
 
 app.Run();
