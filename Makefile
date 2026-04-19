@@ -15,7 +15,7 @@
 
 DOTNET     := dotnet
 NPM        := npm
-SUPABASE   := supabase
+SUPABASE   ?= supabase   # override ได้: SUPABASE=/custom/path make dev-start
 BACKEND    := backend/Ryla.slnx
 FRONTEND   := frontend
 
@@ -31,16 +31,31 @@ help: ## แสดงคำสั่งทั้งหมด
 # Local Development
 # ─────────────────────────────────────────────────────────────────────────────
 
-dev: db-status ## เริ่ม Supabase local (ต้องรัน backend และ frontend แยก)
+dev: check-prereqs dev-start wait-db-ready ## เริ่ม full dev stack (Docker check + Supabase + DB ready)
 	@echo ""
-	@echo "✅ Supabase is running"
+	@echo "✅ Dev stack ready"
 	@echo ""
-	@echo "   Start backend:  dotnet run --project backend/src/Ryla.Api"
-	@echo "   Start frontend: npm run dev --prefix frontend"
+	@echo "   Next steps (แยก terminal):"
+	@echo "   1. Backend:  dotnet run --project backend/src/Ryla.Api/Ryla.Api.csproj --launch-profile http"
+	@echo "   2. Frontend: npm run dev --prefix frontend"
 	@echo ""
-	@echo "   Studio:         http://localhost:54323"
-	@echo "   API:            http://localhost:5000"
-	@echo "   Frontend:       http://localhost:3000"
+	@echo "   Studio:   http://localhost:54323"
+	@echo "   API:      http://localhost:5282"
+	@echo "   Frontend: http://localhost:3000"
+
+check-prereqs: ## ตรวจสอบ Docker + Supabase CLI ก่อนเริ่ม dev stack
+	@docker info > /dev/null 2>&1 || (echo "❌ Docker ไม่ได้รัน — เปิด Docker Desktop ก่อน" && exit 1)
+	@command -v $(SUPABASE) > /dev/null 2>&1 || (echo "❌ Supabase CLI ไม่พบ — รัน: brew install supabase/tap/supabase" && exit 1)
+	@echo "✅ Prerequisites OK (Docker + Supabase CLI)"
+
+wait-db-ready: ## รอ Supabase DB ที่ localhost:54322 พร้อมรับ connection
+	@echo "⏳ Waiting for DB at localhost:54322..."
+	@for i in $$(seq 1 30); do \
+	  if docker exec supabase_db_ryla pg_isready -U postgres > /dev/null 2>&1; then \
+	    echo "✅ DB ready"; exit 0; \
+	  fi; sleep 1; \
+	done; \
+	echo "❌ DB not ready after 30s"; exit 1
 
 dev-start: ## เริ่ม Supabase local stack
 	$(SUPABASE) start
@@ -233,22 +248,32 @@ security-check: ## ตรวจสอบ NuGet + npm vulnerabilities
 # Setup (ครั้งแรก)
 # ─────────────────────────────────────────────────────────────────────────────
 
-setup: ## Setup โปรเจคสำหรับ developer ใหม่
+setup: ## Setup โปรเจคสำหรับ developer ใหม่ (+ preflight check)
+	@echo "🔍 Preflight check..."
+	@command -v docker > /dev/null 2>&1 || (echo "❌ Docker ไม่ได้ติดตั้ง — https://www.docker.com/products/docker-desktop/" && exit 1)
+	@docker info > /dev/null 2>&1 || (echo "❌ Docker ไม่ได้รัน — เปิด Docker Desktop ก่อน" && exit 1)
+	@command -v $(SUPABASE) > /dev/null 2>&1 || (echo "❌ Supabase CLI ไม่พบ — รัน: brew install supabase/tap/supabase" && exit 1)
+	@echo "✅ Docker + Supabase CLI OK"
+	@echo ""
 	@echo "🔧 Configuring git hooks..."
 	git config core.hooksPath .githooks
 	@echo "📦 Installing frontend dependencies..."
 	$(NPM) ci --prefix $(FRONTEND)
 	@echo "📦 Restoring .NET packages..."
 	$(DOTNET) restore $(BACKEND)
+	@if [ ! -f $(FRONTEND)/.env.local ]; then \
+	  echo "📝 Copying .env.example → $(FRONTEND)/.env.local..."; \
+	  cp $(FRONTEND)/.env.example $(FRONTEND)/.env.local 2>/dev/null || echo "   (ไม่พบ .env.example — ข้าม)"; \
+	fi
 	@echo ""
 	@echo "✅ Setup complete. ต่อไป:"
-	@echo "   1. Copy .env.example ไปเป็น frontend/.env.local แล้วใส่ค่า"
-	@echo "   2. make dev-start    (เริ่ม Supabase)"
-	@echo "   3. make db-reset     (apply migrations + seed)"
-	@echo "   4. make setup-secrets (ตั้งค่า dotnet user-secrets)"
-	@echo "   5. make dev          (เริ่ม development)"
+	@echo "   1. make dev          (เริ่ม Supabase + DB ready check)"
+	@echo "   2. make db-reset     (apply migrations + seed) — ครั้งแรกเท่านั้น"
+	@echo "   3. dotnet run --project backend/src/Ryla.Api/Ryla.Api.csproj --launch-profile http"
+	@echo "   4. npm run dev --prefix frontend (ใน terminal แยก)"
 	@echo ""
 	@echo "   ℹ️  Git hooks ตั้งแล้ว — push ตรงไป main/develop จะถูกบล็อก"
+	@echo "   ℹ️  Backend app fail-fast ถ้า DB unreachable — ต้อง make dev ก่อน run"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Workflow Automation

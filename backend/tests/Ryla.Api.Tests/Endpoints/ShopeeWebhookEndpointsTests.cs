@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
+using Ryla.Core.UseCases;
+using Ryla.Infrastructure.Adapters.Database;
 using Xunit;
 
 namespace Ryla.Api.Tests.Endpoints;
@@ -24,6 +27,11 @@ public class ShopeeWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
         var verifier = Substitute.For<IShopeeHmacVerifier>();
         verifier.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(verifierReturns);
 
+        var orderUseCase = Substitute.For<IProcessOrderWebhookUseCase>();
+        orderUseCase
+            .ExecuteAsync(Arg.Any<OrderWebhookContext>(), Arg.Any<CancellationToken>())
+            .Returns(new ProcessOrderResult(ProcessOrderStatus.SkippedNoTenant));
+
         return _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, config) =>
@@ -38,10 +46,22 @@ public class ShopeeWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
 
             builder.ConfigureTestServices(services =>
             {
-                var descriptor = services.SingleOrDefault(
+                // ปิด DbStartupProbe ใน test (ไม่ต้อง real DB)
+                foreach (var probeDesc in services
+                    .Where(d => d.ImplementationType == typeof(DbStartupProbe))
+                    .ToList())
+                    services.Remove(probeDesc);
+
+                var verifierDesc = services.SingleOrDefault(
                     d => d.ServiceType == typeof(IShopeeHmacVerifier));
-                if (descriptor is not null) services.Remove(descriptor);
+                if (verifierDesc is not null) services.Remove(verifierDesc);
                 services.AddScoped<IShopeeHmacVerifier>(_ => verifier);
+
+                // แทนที่ real use case ด้วย mock
+                var useCaseDesc = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(IProcessOrderWebhookUseCase));
+                if (useCaseDesc is not null) services.Remove(useCaseDesc);
+                services.AddScoped<IProcessOrderWebhookUseCase>(_ => orderUseCase);
             });
         }).CreateClient();
     }
@@ -148,7 +168,6 @@ public class ShopeeWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
     [Fact]
     public async Task ReceiveShopeeWebhook__WhenTimestampIsFuture__ShouldReturn401()
     {
-        // Arrange
         var client = CreateClientWithVerifier(verifierReturns: true);
         var futureTimestamp = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds();
         var payload = $$$"""{"code":3,"shop_id":123456,"timestamp":{{{futureTimestamp}}},"data":{"ordersn":"TEST123","status":"READY_TO_SHIP"}}""";
@@ -156,26 +175,21 @@ public class ShopeeWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
         var request = new HttpRequestMessage(HttpMethod.Post, "/webhooks/shopee?authorization=valid-sig");
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-        // Act
         var response = await client.SendAsync(request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
     public async Task ReceiveShopeeWebhook__WhenPayloadIsJsonNull__ShouldReturn422()
     {
-        // Arrange
         var client = CreateClientWithVerifier(verifierReturns: true);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/webhooks/shopee?authorization=valid-sig");
         request.Content = new StringContent("null", Encoding.UTF8, "application/json");
 
-        // Act
         var response = await client.SendAsync(request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
     }
 }

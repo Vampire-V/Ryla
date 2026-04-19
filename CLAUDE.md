@@ -84,6 +84,21 @@ These rules are NON-NEGOTIABLE for `Ryla.Api` and `Ryla.Infrastructure`:
 
 ## Workflow Rules
 
+### Local DB is mandatory (fail-fast)
+
+Backend app รัน **DB startup probe** (SELECT 1) ก่อน Kestrel accept traffic — exit(1) ถ้า DB unreachable
+
+- **Before `dotnet run`:** ต้อง `make dev` เสมอ (Supabase + DB ready check)
+- **Unit tests:** ไม่ต้องพึ่ง DB (NSubstitute mocks)
+- **Integration tests (Testcontainers):** spin Postgres container อัตโนมัติ — ไม่ใช้ local Supabase
+- **E2E regression (`make test-e2e`):** app ต้องรัน (ดังนั้น DB ต้องพร้อม) แต่ test เองไม่ต้อง seed
+- **E2E full-mode (`RYLA_E2E_LINE=1`):** ต้อง seed tenant + connections + LINE stub — ดู `tests/e2e/README.md`
+
+**New Options class (IConfiguration binding):** ใช้ `{ get; set; }` **เท่านั้น** — `{ get; init; }` silent-fail กับ
+`ConfigurationBinder` → options หลุดไปใช้ default values (bug เคยเกิด LineOptions, fixed a735fb8)
+
+**`/health` endpoint:** probe DB ด้วย SELECT 1 (2s timeout) → 200 ถ้า ok, 503 ถ้า unreachable
+
 ### Branching Strategy (Gitflow)
 
 ```

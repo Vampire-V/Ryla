@@ -6,7 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Ryla.Core.Configuration;
+using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
+using Ryla.Core.UseCases;
+using Ryla.Infrastructure.Adapters.Database;
 using Xunit;
 
 namespace Ryla.Api.Tests.Endpoints;
@@ -25,6 +28,11 @@ public class TikTokWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
         var verifier = Substitute.For<ITikTokHmacVerifier>();
         verifier.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(verifierReturns);
 
+        var orderUseCase = Substitute.For<IProcessOrderWebhookUseCase>();
+        orderUseCase
+            .ExecuteAsync(Arg.Any<OrderWebhookContext>(), Arg.Any<CancellationToken>())
+            .Returns(new ProcessOrderResult(ProcessOrderStatus.SkippedNoTenant));
+
         return _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, config) =>
@@ -37,11 +45,23 @@ public class TikTokWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
 
             builder.ConfigureTestServices(services =>
             {
+                // ปิด DbStartupProbe ใน test (ไม่ต้อง real DB)
+                foreach (var probeDesc in services
+                    .Where(d => d.ImplementationType == typeof(DbStartupProbe))
+                    .ToList())
+                    services.Remove(probeDesc);
+
                 // แทนที่ real verifier ด้วย mock
-                var descriptor = services.SingleOrDefault(
+                var verifierDesc = services.SingleOrDefault(
                     d => d.ServiceType == typeof(ITikTokHmacVerifier));
-                if (descriptor is not null) services.Remove(descriptor);
+                if (verifierDesc is not null) services.Remove(verifierDesc);
                 services.AddScoped<ITikTokHmacVerifier>(_ => verifier);
+
+                // แทนที่ real use case ด้วย mock
+                var useCaseDesc = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(IProcessOrderWebhookUseCase));
+                if (useCaseDesc is not null) services.Remove(useCaseDesc);
+                services.AddScoped<IProcessOrderWebhookUseCase>(_ => orderUseCase);
             });
         }).CreateClient();
     }

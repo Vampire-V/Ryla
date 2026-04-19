@@ -19,23 +19,16 @@ supabase --version # >= 2.0 (brew install supabase/tap/supabase)
 ## ครั้งแรก (First-time Setup)
 
 ```bash
-# 1. Setup dependencies
+# 1. Setup — ตรวจสอบ prerequisites (Docker, Supabase CLI) + ติดตั้ง deps + git hooks
 make setup
 
-# 2. สร้าง frontend env file
-cp .env.example frontend/.env.local
-# แก้ไข frontend/.env.local ใส่ค่า Supabase local (ดูขั้นตอน 3)
+# 2. เริ่ม dev stack (Supabase + DB ready check)
+make dev
 
-# 3. เริ่ม Supabase local
-make dev-start
-# → Supabase Studio:  http://localhost:54323
-# → API:              http://localhost:54321
-# → Database:         localhost:54322
-
-# 4. Apply migrations + seed data
+# 3. Apply migrations + seed data (ครั้งแรกเท่านั้น)
 make db-reset
 
-# 5. อัปเดต frontend/.env.local ด้วยค่าจาก 'supabase status'
+# 4. อัปเดต frontend/.env.local ด้วยค่าจาก 'supabase status'
 supabase status
 # ANON KEY และ API URL จะแสดงที่นี่
 ```
@@ -45,18 +38,42 @@ supabase status
 ## Daily Development
 
 ```bash
-# Terminal 1: เริ่ม Supabase (ถ้าหยุดไป)
-make dev-start
+# Terminal 1: เริ่ม dev stack (ครั้งเดียวต่อ session)
+make dev
+# → ตรวจสอบ Docker + Supabase CLI
+# → เริ่ม Supabase stack
+# → รอ DB ready ที่ localhost:54322
+# → แสดงข้อความ "Dev stack ready" พร้อม next steps
 
 # Terminal 2: รัน .NET backend
-dotnet run --project backend/src/Ryla.Api
-# → http://localhost:5000
-# → http://localhost:5000/health
-# → http://localhost:5000/openapi/v1.json
+dotnet run --project backend/src/Ryla.Api/Ryla.Api.csproj --launch-profile http
+# → http://localhost:5282
+# → http://localhost:5282/health     (เช็ค DB connectivity ด้วย)
+# → http://localhost:5282/openapi/v1.json
+#
+# ⚠️  Backend fail-fast ถ้า DB ไม่พร้อม — ต้อง make dev ก่อนเสมอ
 
 # Terminal 3: รัน Next.js frontend
 npm run dev --prefix frontend
 # → http://localhost:3000
+```
+
+### Fail-fast at startup
+
+ตั้งแต่ DX-01 app จะ **exit immediately** ถ้าเชื่อม DB ไม่ได้ตอน startup:
+
+```
+fail: Ryla.Infrastructure.Adapters.Database.DbStartupProbe[0]
+      Database startup probe FAILED. Fix: 'make dev-start' (local dev) ...
+Unhandled exception. InvalidOperationException: Database unreachable at startup.
+```
+
+ไม่ใช่ bug — เป็น design ตั้งใจ: ถ้า DB ไม่มี, webhook ทำงานไม่ได้จริง
+การ fail-fast ดีกว่าสร้าง false "healthy" signal
+
+Override timeout (default 5s) ด้วย env var:
+```bash
+STARTUP_DB_PROBE_TIMEOUT_SECONDS=10 dotnet run ...
 ```
 
 ---
@@ -168,8 +185,11 @@ dotnet user-secrets set "ConnectionStrings:Supabase" \
 | ปัญหา | สาเหตุ | วิธีแก้ |
 |---|---|---|
 | `supabase: command not found` | ยังไม่ได้ติดตั้ง | `brew install supabase/tap/supabase` |
-| Port 54321 ถูกใช้อยู่ | app อื่นใช้ port | `lsof -i :54321` แล้ว kill process |
-| `Docker daemon is not running` | Docker Desktop ปิดอยู่ | เปิด Docker Desktop ก่อน |
+| Port 54321/54322 ถูกใช้อยู่ | app อื่นใช้ port | `lsof -i :54322` แล้ว kill, หรือ `make dev-stop` |
+| `Docker daemon is not running` | Docker Desktop ปิดอยู่ | เปิด Docker Desktop ก่อน (`make dev` จะเตือน) |
+| **Backend exit ทันทีด้วย "Database unreachable"** | DB ไม่ได้เปิด | `make dev` ก่อน (ไม่ใช่ bug — fail-fast by design) |
+| `make dev` ค้างที่ "Waiting for DB" | Container ยังไม่ boot | รอ 30s, ถ้าเกินให้ `make dev-stop && make dev` |
 | Migration fail | SQL syntax error | ดู `supabase db reset` output |
 | Testcontainers timeout | Docker slow | เพิ่ม timeout ใน `PostgreSqlBuilder.WithWaitStrategy` |
 | Types outdated | Schema เปลี่ยนแล้ว | `make types` |
+| `/health` returns 503 | DB ล่มตอน runtime | `docker ps` เช็ค supabase_db_ryla, restart ถ้าต้อง |
