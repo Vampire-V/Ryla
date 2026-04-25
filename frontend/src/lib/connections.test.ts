@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   getTenantId,
+  getConnections,
   upsertLineConnection,
   upsertSheetsConnection,
   deleteConnection,
@@ -67,6 +68,43 @@ describe('getTenantId', () => {
     })
 
     await expect(getTenantId()).rejects.toThrow('Profile not found')
+  })
+})
+
+describe('getConnections', () => {
+  it('returns connections ordered by created_at', async () => {
+    const mockOrder = vi.fn().mockResolvedValue({ data: [{ id: 'c1' }, { id: 'c2' }], error: null })
+    mockSupabase.from.mockReturnValue({
+      select: vi.fn().mockReturnValue({ order: mockOrder }),
+    })
+
+    const result = await getConnections()
+
+    expect(result).toEqual([{ id: 'c1' }, { id: 'c2' }])
+    expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: true })
+  })
+
+  it('returns empty array when data is null', async () => {
+    mockSupabase.from.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }),
+    })
+
+    const result = await getConnections()
+
+    expect(result).toEqual([])
+  })
+
+  it('throws on Supabase error', async () => {
+    const dbError = { message: 'connection refused' }
+    mockSupabase.from.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: null, error: dbError }),
+      }),
+    })
+
+    await expect(getConnections()).rejects.toMatchObject(dbError)
   })
 })
 

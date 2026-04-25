@@ -56,6 +56,13 @@ TestResults/
 
 # Claude Code local settings (personal overrides, ไม่ share ระหว่าง developers)
 .claude/settings.local.json
+.claude/review-passed.json
+
+# Superpowers plugin local cache
+.superpowers/
+
+# VS Code (ทำงานคนเดียว ไม่ต้อง share)
+.vscode/
 
 # Skills (reinstall via: npx skills install — lockfile: skills-lock.json)
 .agents/skills/
