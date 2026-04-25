@@ -30,7 +30,7 @@ public static class TestNotificationEndpoints
             }
 
             if (!Guid.TryParse(request.TenantId, out var tenantId))
-                return Results.BadRequest("Invalid tenantId format");
+                return Results.BadRequest(new TestNotificationResponse(false, "Invalid tenantId format"));
 
             var result = await useCase.ExecuteAsync(tenantId, ct);
 
@@ -39,7 +39,13 @@ public static class TestNotificationEndpoints
                 result.Success
                     ? "ส่งสำเร็จ! เช็ค LINE ของคุณ"
                     : result.ErrorMessage ?? "เกิดข้อผิดพลาด"));
-        });
+        })
+            .WithName("PostTestNotification")
+            .WithSummary("Send a test LINE notification for the calling tenant")
+            .WithTags("Notifications")
+            .Produces<TestNotificationResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces<TestNotificationResponse>(StatusCodes.Status400BadRequest);
 
         return app;
     }
