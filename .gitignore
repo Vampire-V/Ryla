@@ -23,6 +23,9 @@ frontend/coverage/
 supabase/.branches/
 supabase/.temp/
 
+# Google Cloud service account key files (NEVER commit)
+ryla-*.json
+
 # Secrets — NEVER commit these
 .env
 .env.local
