@@ -2,28 +2,29 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const WEBHOOK_URL = 'https://your-domain.com/webhooks/shopee'
-
 export default function WebhookPage() {
+  const [webhookUrl, setWebhookUrl] = useState('')
   const [copied, setCopied] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    setWebhookUrl(`${window.location.origin}/webhooks/shopee`)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
   }, [])
 
   const handleCopy = useCallback(async () => {
+    if (!webhookUrl) return
     try {
-      await navigator.clipboard.writeText(WEBHOOK_URL)
+      await navigator.clipboard.writeText(webhookUrl)
       setCopied(true)
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => setCopied(false), 2000)
     } catch {
       // clipboard access denied or unavailable — do nothing
     }
-  }, [])
+  }, [webhookUrl])
 
   return (
     <div>
@@ -38,11 +39,13 @@ export default function WebhookPage() {
         </div>
         <div className="flex items-center gap-2">
           <code className="flex-1 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-800 break-all">
-            {WEBHOOK_URL}
+            {webhookUrl || 'กำลังโหลด...'}
           </code>
           <button
+            type="button"
             onClick={handleCopy}
-            className="flex-shrink-0 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+            disabled={!webhookUrl}
+            className="flex-shrink-0 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40"
           >
             {copied ? '✅ Copied' : '📋 Copy'}
           </button>
