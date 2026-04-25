@@ -36,8 +36,8 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach(({ name, value }) =>
-      redirectResponse.cookies.set(name, value)
+    supabaseResponse.cookies.getAll().forEach((cookie) =>
+      redirectResponse.cookies.set(cookie)
     )
     return redirectResponse
   }
@@ -46,8 +46,8 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/connections'
     const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach(({ name, value }) =>
-      redirectResponse.cookies.set(name, value)
+    supabaseResponse.cookies.getAll().forEach((cookie) =>
+      redirectResponse.cookies.set(cookie)
     )
     return redirectResponse
   }
