@@ -1,31 +1,71 @@
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Ryla.Api.Extensions;
+using Ryla.Infrastructure.Adapters.Database;
 
 namespace Ryla.Api.Endpoints;
 
 public static class HealthEndpoints
 {
+    private static readonly TimeSpan DbProbeTimeout = TimeSpan.FromSeconds(2);
+
     public static IEndpointRouteBuilder MapHealthEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/health", GetHealth)
+        app.MapGet("/health", GetHealthAsync)
             .AllowAnonymous() // เปิด public เพื่อให้ load balancer / Azure probe ตรวจสอบได้
             .WithName("GetHealth")
             .WithSummary("Health check")
-            .WithDescription("Returns service health status and server timestamp. Used by Azure Functions health probes and load balancers.")
+            .WithDescription("Returns service + database health. 503 if database unreachable.")
             .WithTags("Health")
-            .Produces<HealthResponse>(StatusCodes.Status200OK);
-        // หมายเหตุ: ไม่ใช้ .WithOpenApi() — มี [RequiresDynamicCode] ซึ่ง AOT-incompatible
-        // AddOpenApi() + MapOpenApi() ใน Program.cs collect metadata จาก WithSummary/WithTags/Produces อัตโนมัติ
+            .Produces<HealthResponse>(StatusCodes.Status200OK)
+            .Produces<HealthResponse>(StatusCodes.Status503ServiceUnavailable);
 
         return app;
     }
 
-    /// <summary>Returns the current health status of the Ryla API.</summary>
-    /// <returns>Health status with UTC timestamp.</returns>
-    internal static Ok<HealthResponse> GetHealth() =>
-        TypedResults.Ok(new HealthResponse("healthy", DateTimeOffset.UtcNow));
+    /// <summary>Returns the current health status of the Ryla API + database.</summary>
+    internal static async Task<IResult> GetHealthAsync(
+        IDbConnectionFactory connectionFactory,
+        ILogger<HealthResponse> logger,
+        CancellationToken cancellationToken)
+    {
+        var dbStatus = await ProbeDbAsync(connectionFactory, logger, cancellationToken);
+        var overall = dbStatus == "ok" ? "healthy" : "degraded";
+        var response = new HealthResponse(overall, dbStatus, DateTimeOffset.UtcNow);
+
+        var statusCode = dbStatus == "ok"
+            ? StatusCodes.Status200OK
+            : StatusCodes.Status503ServiceUnavailable;
+
+        return Results.Json(response, RylaJsonContext.Default.HealthResponse, statusCode: statusCode);
+    }
+
+    private static async Task<string> ProbeDbAsync(
+        IDbConnectionFactory factory,
+        ILogger<HealthResponse> logger,
+        CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(DbProbeTimeout);
+
+        try
+        {
+            await using var connection = await factory.CreateAsync(cts.Token);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT 1";
+            await cmd.ExecuteScalarAsync(cts.Token);
+            return "ok";
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Health check: DB probe failed");
+            return "unreachable";
+        }
+    }
 }
 
-/// <summary>API health status response.</summary>
-/// <param name="Status">Always "healthy" when the service is operational.</param>
+/// <summary>API + database health status response.</summary>
+/// <param name="Status">"healthy" if DB reachable, "degraded" otherwise.</param>
+/// <param name="Db">"ok" or "unreachable".</param>
 /// <param name="Timestamp">Current UTC server time.</param>
-public record HealthResponse(string Status, DateTimeOffset Timestamp);
+public record HealthResponse(string Status, string Db, DateTimeOffset Timestamp);

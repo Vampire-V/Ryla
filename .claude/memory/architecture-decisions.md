@@ -57,4 +57,17 @@
 
 ---
 
+## ADR-007: Manual JWT signing for Google APIs (no Google.Apis.* SDKs)
+
+- **Date:** 2026-04-20
+- **Decision:** เรียก Google Sheets API + OAuth2 token endpoint ด้วย raw `HttpClient` + source-gen JSON + manual JWT signing ผ่าน `System.Security.Cryptography.RSA` — ไม่ใช้ `Google.Apis.Sheets.v4`, `Google.Apis.Auth`, หรือ SDK อื่นในตระกูล Google.Apis.*
+- **Reason:** SDK เหล่านั้นใช้ Newtonsoft.Json + reflection-based code-gen → AOT-incompatible (จะ trigger IL2026/IL2072 ทันทีตอน publish)
+- **Consequence:**
+  - JWT signing logic อยู่ที่ `GoogleJwtSigner` (Infrastructure) — ใช้ `RSA.ImportFromPem()` + `SignData(SHA256, Pkcs1)` + base64url encoding manual
+  - ทุก Google response/request type ต้อง register ใน `GoogleSheetsJsonContext` ด้วย `[JsonSerializable]`
+  - ถ้าจะเพิ่ม Google API ใหม่ในอนาคต (Drive, Calendar) ใช้ pattern เดียวกัน — ห้ามดึง Google.Apis.* NuGet เข้ามา
+  - Token cache อยู่ที่ Singleton `GoogleSheetsClient` (in-memory dictionary keyed by service-account email + 60s expiry buffer)
+
+---
+
 <!-- เพิ่ม ADR ใหม่ต่อจากนี้ -->

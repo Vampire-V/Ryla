@@ -1,5 +1,6 @@
 ---
 name: pr-agent
+model: sonnet
 description: Creates properly formatted GitHub pull requests for Ryla following the project PR template. Only invoke AFTER quality-auditor-agent has produced a PASS verdict. Triggers on: "create PR", "open pull request", "push and create PR", "submit for review", "ready to merge".
 tools: [Read, Bash, Glob, Grep, mcp__git__*]
 ---

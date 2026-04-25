@@ -7,9 +7,9 @@ on:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
   pull_request:
-    paths:
-      - 'backend/**'
-      - '.github/workflows/ci-backend.yml'
+    branches: [main, develop]
+    # ไม่ใส่ path filter — ให้ run ทุก PR เพื่อ branch protection required checks
+    # public repo = unlimited minutes ไม่ต้องประหยัด
 
 # ให้ test-reporter เขียน check annotations ได้
 permissions:
@@ -90,10 +90,11 @@ jobs:
             --configuration Release \
             --no-build \
             --collect:"XPlat Code Coverage" \
+            --settings backend/coverage.runsettings \
             --results-directory ./coverage \
             --logger "trx;LogFileName=results.trx" \
             --logger "console;verbosity=normal"
-        # coverlet.collector (XPlat Code Coverage) outputs cobertura XML
+        # coverage.runsettings excludes source-generated code จาก coverage
 
       - name: Generate consolidated coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5

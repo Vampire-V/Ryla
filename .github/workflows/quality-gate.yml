@@ -111,47 +111,37 @@ jobs:
           "
 
   # ─────────────────────────────────────────────────────────────
-  # JOB: All Checks Must Pass
+  # JOB: All Checks Passed
   #
-  # This job waits for ci-backend and ci-frontend to complete,
-  # then acts as a single required check for branch protection.
-  #
-  # Branch protection setting:
-  #   Required status checks → "Quality Gate / All Checks Passed"
+  # ไม่ poll CI workflows อื่นๆ (เปลือง runner minutes)
+  # Branch protection บังคับ required checks แยก:
+  #   - "Test & Coverage Gate" (ci-backend)
+  #   - "Native AOT Build (Linux x64)" (ci-backend)
+  #   - "All Checks Passed" (quality-gate — changelog only)
   # ─────────────────────────────────────────────────────────────
   all-checks-passed:
     name: All Checks Passed
     runs-on: ubuntu-latest
+    needs: [changelog-fragment]
+    if: always()
 
     steps:
-      - name: Check — backend CI status
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check changelog result
         run: |
-          # ตรวจสอบว่า CI jobs ทั้งหมดที่เกี่ยวข้องผ่าน
-          echo "✅ ESLint gate:           enforced in ci-frontend.yml (--max-warnings 0)"
-          echo "✅ TypeScript gate:        enforced in ci-frontend.yml (tsc --noEmit)"
-          echo "✅ dotnet format gate:     enforced in ci-backend.yml (--verify-no-changes)"
-          echo "✅ Test coverage gate:     enforced in ci-backend.yml + ci-frontend.yml (≥ 80%)"
-          echo "✅ AOT build gate:         enforced in ci-backend.yml (/warnaserror)"
-          echo "✅ Secret scanning:        enforced in security-scan.yml (Gitleaks)"
-          echo "✅ Dependency audit:       enforced in security-scan.yml (High/Critical → fail)"
-          echo ""
-          echo "All quality gates are enforced by upstream jobs."
-          echo "This job succeeds only when all required workflows pass."
+          CL_RESULT="${{ needs.changelog-fragment.result }}"
+          if [ "$CL_RESULT" = "failure" ]; then
+            echo "❌ Changelog fragment check failed"
+            exit 1
+          fi
+          echo "✅ Changelog: $CL_RESULT"
 
       - name: Summary
         run: |
-          echo "## Quality Gate Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Quality Gate" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Threshold | Workflow |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| C# Formatting | Zero violations | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| ESLint | Zero warnings | ci-frontend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| TypeScript | Zero errors | ci-frontend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend Coverage | ≥ 80% | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend Coverage | ≥ 80% | ci-frontend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Native AOT Build | Zero IL warnings | ci-backend.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Secret Detection | Zero secrets | security-scan.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerability Audit | No High/Critical | security-scan.yml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Changelog Fragment | Required per PR | quality-gate.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Enforced By |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Changelog Fragment | quality-gate.yml |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Lint + Test + AOT | ci-backend.yml (branch protection) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Lint + Test + Build | ci-frontend.yml (branch protection) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | security-scan.yml (push main/develop) |" >> $GITHUB_STEP_SUMMARY

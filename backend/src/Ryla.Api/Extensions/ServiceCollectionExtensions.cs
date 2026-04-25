@@ -5,6 +5,9 @@ using Ryla.Api.Endpoints;
 using Ryla.Core.Configuration;
 using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
+using Ryla.Core.UseCases;
+using Ryla.Infrastructure.Adapters.LineMessaging;
+using Ryla.Infrastructure.Adapters.GoogleSheets;
 
 namespace Ryla.Api.Extensions;
 
@@ -12,6 +15,8 @@ namespace Ryla.Api.Extensions;
 // ทุก type ที่ผ่าน HTTP boundary ต้องลงทะเบียนที่นี่
 [JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(TikTokWebhookPayload))]
+[JsonSerializable(typeof(TikTokOrderContent))]
+[JsonSerializable(typeof(ShopeeWebhookPayload))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false)]
@@ -28,7 +33,27 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ITikTokHmacVerifier, TikTokHmacVerifier>();
 
-        // TODO: ลงทะเบียน Core use cases ที่นี่ (explicit, ห้ามใช้ assembly scanning)
+        services.Configure<ShopeeOptions>(
+            configuration.GetSection(ShopeeOptions.SectionName));
+
+        services.AddScoped<IShopeeHmacVerifier, ShopeeHmacVerifier>();
+
+        // ─── Core use cases ───────────────────────────────────────────────────
+        services.AddRylaCoreUseCases();
+
+        // ─── LINE Options + JSON context ──────────────────────────────────────
+        services.Configure<LineOptions>(configuration.GetSection("Line"));
+
+        services.ConfigureHttpJsonOptions(opts =>
+            opts.SerializerOptions.TypeInfoResolverChain.Insert(0, LineJsonContext.Default));
+
+        // ─── Google Sheets Options + JSON context ─────────────────────────────
+        services.Configure<GoogleSheetsOptions>(
+            configuration.GetSection(GoogleSheetsOptions.SectionName));
+
+        services.ConfigureHttpJsonOptions(opts =>
+            opts.SerializerOptions.TypeInfoResolverChain.Insert(0, GoogleSheetsJsonContext.Default));
+
         return services;
     }
 }
