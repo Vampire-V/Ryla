@@ -1,0 +1,9 @@
+pr: 6
+type: feat
+scope: "api"
+title: "Shopee webhook receiver with HMAC-SHA256 verification"
+description: |
+  รับ push notification จาก Shopee Open Platform สำหรับ order status change events
+  พร้อม HMAC-SHA256 signature verification + replay protection
+breaking: false
+migration: false
