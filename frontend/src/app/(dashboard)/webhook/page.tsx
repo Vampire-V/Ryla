@@ -1,17 +1,29 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const WEBHOOK_URL = 'https://your-domain.com/webhooks/shopee'
 
 export default function WebhookPage() {
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(WEBHOOK_URL)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(WEBHOOK_URL)
+      setCopied(true)
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard access denied or unavailable — do nothing
+    }
+  }, [])
 
   return (
     <div>
