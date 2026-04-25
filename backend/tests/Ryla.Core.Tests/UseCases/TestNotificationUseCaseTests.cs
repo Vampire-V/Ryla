@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Ryla.Core.Tests.UseCases;
 
-public class TestNotificationUseCaseTests
+public sealed class TestNotificationUseCaseTests
 {
     private readonly IConnectionRepository _connections = Substitute.For<IConnectionRepository>();
     private readonly ILineNotifier _notifier = Substitute.For<ILineNotifier>();

@@ -1,6 +1,6 @@
 namespace Ryla.Core.UseCases;
 
-public record TestNotificationResult(bool Success, string? ErrorMessage = null);
+public sealed record TestNotificationResult(bool Success, string? ErrorMessage = null);
 
 public interface ITestNotificationUseCase
 {
