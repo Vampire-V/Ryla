@@ -24,8 +24,15 @@ export function ConnectionCard({ connection }: Props) {
 
   const handleDelete = async () => {
     if (!confirm('ลบ connection นี้? ไม่สามารถย้อนกลับได้')) return
-    await deleteConnection(connection.id)
-    router.refresh()
+    try {
+      await deleteConnection(connection.id)
+      router.refresh()
+    } catch (err) {
+      showToast(
+        err instanceof Error ? `❌ ${err.message}` : '❌ เกิดข้อผิดพลาด กรุณาลองใหม่',
+        false,
+      )
+    }
   }
 
   const handleTest = async () => {
