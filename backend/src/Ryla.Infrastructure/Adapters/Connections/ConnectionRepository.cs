@@ -63,6 +63,42 @@ internal sealed class ConnectionRepository(IDbConnectionFactory connectionFactor
         return new LineCredentials(token, userId);
     }
 
+
+    public async Task<GoogleSheetsCredentials?> GetGoogleSheetsCredentialsAsync(
+        Guid tenantId,
+        CancellationToken ct = default)
+    {
+        await using var conn = await connectionFactory.CreateAsync(ct);
+        await using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = """
+            SELECT credentials->>'spreadsheet_id',
+                   credentials->>'worksheet_name',
+                   credentials->>'service_account_json'
+            FROM connections
+            WHERE tenant_id = @tenantId
+              AND platform = 'google_sheets'
+              AND is_active = true
+            LIMIT 1
+            """;
+        cmd.Parameters.AddWithValue("tenantId", tenantId);
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct))
+            return null;
+
+        var spreadsheetId = reader.IsDBNull(0) ? null : reader.GetString(0);
+        var worksheetName = reader.IsDBNull(1) ? null : reader.GetString(1);
+        var serviceAccountJson = reader.IsDBNull(2) ? null : reader.GetString(2);
+
+        if (string.IsNullOrEmpty(spreadsheetId)
+            || string.IsNullOrEmpty(worksheetName)
+            || string.IsNullOrEmpty(serviceAccountJson))
+            return null;
+
+        return new GoogleSheetsCredentials(spreadsheetId, worksheetName, serviceAccountJson);
+    }
+
     /// <summary>
     /// Map Platform enum ไปเป็น SQL string ที่ใช้ใน connections.platform column
     /// </summary>

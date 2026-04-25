@@ -137,4 +137,35 @@ public sealed class ConnectionRepositoryTests : IAsyncLifetime
         cmd.Parameters.AddWithValue("isActive", isActive);
         await cmd.ExecuteNonQueryAsync();
     }
+
+    // ─── GetGoogleSheetsCredentials tests ─────────────────────────────────────
+
+    [Fact]
+    public async Task GetGoogleSheetsCredentialsAsync__WhenConnectionExists__ShouldReturnCredentials()
+    {
+        var tenantId = await InsertTenantAsync("Sheets Tenant");
+        await InsertConnectionAsync(tenantId, "google_sheets",
+            """{"spreadsheet_id": "sheet-abc", "worksheet_name": "Orders", "service_account_json": "{\"client_email\":\"svc@test.iam\"}"}""",
+            isActive: true);
+
+        var result = await _repository.GetGoogleSheetsCredentialsAsync(tenantId);
+
+        Assert.NotNull(result);
+        Assert.Equal("sheet-abc", result.SpreadsheetId);
+        Assert.Equal("Orders", result.WorksheetName);
+        Assert.Contains("svc@test.iam", result.ServiceAccountJson);
+    }
+
+    [Fact]
+    public async Task GetGoogleSheetsCredentialsAsync__WhenNoConnection__ShouldReturnNull()
+    {
+        var tenantId = await InsertTenantAsync("No Sheets Tenant");
+        await InsertConnectionAsync(tenantId, "tiktok_shop",
+            """{"shop_id": "shop-001"}""", isActive: true);
+
+        var result = await _repository.GetGoogleSheetsCredentialsAsync(tenantId);
+
+        Assert.Null(result);
+    }
+
 }

@@ -1,0 +1,14 @@
+pr: 8
+type: feat
+scope: "api"
+title: "Google Sheets append-row adapter — webhooks ส่งเข้า LINE + Sheets ขนาน"
+description: |
+  เพิ่ม outbound adapter ที่ append แถว order ลง Google Sheets ของ tenant คู่ขนาน
+  กับ LINE push (RYLA-4). ใช้ raw HttpClient + manual JWT signing (RS256 ผ่าน
+  System.Security.Cryptography.RSA) — ไม่ใช้ Google.Apis.* SDK เพราะ AOT-incompatible
+  (ดู ADR-007). Token cache in-memory (60s expiry buffer) ลด token request เกือบทั้งหมด
+  Fail-soft: Sheets/Token error → log + webhook ยังคืน 200 (idempotent)
+  ไม่ต้อง migration — ใช้ connections(credentials jsonb) table เดิม + ค่า
+  'google_sheets' มีอยู่ใน CHECK constraint แล้วตั้งแต่ init migration
+breaking: false
+migration: false

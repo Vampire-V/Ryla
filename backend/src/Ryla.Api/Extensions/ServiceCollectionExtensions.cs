@@ -7,6 +7,7 @@ using Ryla.Core.Domain.Webhooks;
 using Ryla.Core.Services;
 using Ryla.Core.UseCases;
 using Ryla.Infrastructure.Adapters.LineMessaging;
+using Ryla.Infrastructure.Adapters.GoogleSheets;
 
 namespace Ryla.Api.Extensions;
 
@@ -45,6 +46,13 @@ public static class ServiceCollectionExtensions
 
         services.ConfigureHttpJsonOptions(opts =>
             opts.SerializerOptions.TypeInfoResolverChain.Insert(0, LineJsonContext.Default));
+
+        // ─── Google Sheets Options + JSON context ─────────────────────────────
+        services.Configure<GoogleSheetsOptions>(
+            configuration.GetSection(GoogleSheetsOptions.SectionName));
+
+        services.ConfigureHttpJsonOptions(opts =>
+            opts.SerializerOptions.TypeInfoResolverChain.Insert(0, GoogleSheetsJsonContext.Default));
 
         return services;
     }

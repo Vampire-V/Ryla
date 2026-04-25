@@ -24,4 +24,12 @@ public interface IConnectionRepository
     Task<LineCredentials?> GetLineCredentialsAsync(
         Guid tenantId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// ดึง Google Sheets credentials ของ tenant
+    /// คืน null ถ้าไม่มี google_sheets connection หรือ field หายไป
+    /// </summary>
+    Task<GoogleSheetsCredentials?> GetGoogleSheetsCredentialsAsync(
+        Guid tenantId,
+        CancellationToken ct = default);
 }
