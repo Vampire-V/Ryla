@@ -17,6 +17,8 @@ namespace Ryla.Api.Extensions;
 [JsonSerializable(typeof(TikTokWebhookPayload))]
 [JsonSerializable(typeof(TikTokOrderContent))]
 [JsonSerializable(typeof(ShopeeWebhookPayload))]
+[JsonSerializable(typeof(TestNotificationRequest))]
+[JsonSerializable(typeof(TestNotificationResponse))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false)]
