@@ -11,6 +11,7 @@ public static class CoreServiceCollectionExtensions
     public static IServiceCollection AddRylaCoreUseCases(this IServiceCollection services)
     {
         services.AddScoped<IProcessOrderWebhookUseCase, ProcessOrderWebhookUseCase>();
+        services.AddScoped<ITestNotificationUseCase, TestNotificationUseCase>();
         return services;
     }
 }
