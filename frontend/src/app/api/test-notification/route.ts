@@ -15,12 +15,26 @@ export async function POST() {
     )
   }
 
-  const { data: profile } = await supabase
+  const internalSecret = process.env['INTERNAL_API_SECRET']
+  if (!internalSecret) {
+    return NextResponse.json(
+      { success: false, message: 'Internal error' },
+      { status: 500 },
+    )
+  }
+
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('tenant_id')
     .eq('id', user.id)
     .single()
 
+  if (profileError && profileError.code !== 'PGRST116') {
+    return NextResponse.json(
+      { success: false, message: 'Internal error' },
+      { status: 500 },
+    )
+  }
   if (!profile) {
     return NextResponse.json(
       { success: false, message: 'Profile not found' },
@@ -29,11 +43,11 @@ export async function POST() {
   }
 
   const backendUrl = process.env['NEXT_PUBLIC_BACKEND_URL'] ?? 'http://localhost:5282'
-  const internalSecret = process.env['INTERNAL_API_SECRET'] ?? ''
 
   try {
     const res = await fetch(`${backendUrl}/api/test-notification`, {
       method: 'POST',
+      signal: AbortSignal.timeout(5000),
       headers: {
         'Content-Type': 'application/json',
         'X-Internal-Secret': internalSecret,
