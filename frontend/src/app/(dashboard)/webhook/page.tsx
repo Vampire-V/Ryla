@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export default function WebhookPage() {
-  const [webhookUrl, setWebhookUrl] = useState('')
+  const [webhookUrl] = useState(() =>
+    typeof window !== 'undefined' ? `${window.location.origin}/webhooks/shopee` : ''
+  )
   const [copied, setCopied] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    setWebhookUrl(`${window.location.origin}/webhooks/shopee`)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
