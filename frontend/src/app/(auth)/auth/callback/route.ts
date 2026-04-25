@@ -5,6 +5,11 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const errorParam = searchParams.get('error')
+
+  if (errorParam) {
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorParam)}`)
+  }
 
   if (code) {
     const cookieStore = await cookies()
@@ -24,8 +29,13 @@ export async function GET(request: Request) {
         },
       },
     )
-    await supabase.auth.exchangeCodeForSession(code)
+    try {
+      await supabase.auth.exchangeCodeForSession(code)
+      return NextResponse.redirect(`${origin}/connections`)
+    } catch {
+      return NextResponse.redirect(`${origin}/login?error=callback_failed`)
+    }
   }
 
-  return NextResponse.redirect(`${origin}/connections`)
+  return NextResponse.redirect(`${origin}/login?error=no_code`)
 }
