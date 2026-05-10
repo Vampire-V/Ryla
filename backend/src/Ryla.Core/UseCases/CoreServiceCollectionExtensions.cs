@@ -12,6 +12,7 @@ public static class CoreServiceCollectionExtensions
     {
         services.AddScoped<IProcessOrderWebhookUseCase, ProcessOrderWebhookUseCase>();
         services.AddScoped<ITestNotificationUseCase, TestNotificationUseCase>();
+        services.AddScoped<ISimulateOrderUseCase, SimulateOrderUseCase>();
         return services;
     }
 }

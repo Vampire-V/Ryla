@@ -28,5 +28,6 @@ app.MapHealthEndpoints();
 app.MapTikTokWebhookEndpoints();
 app.MapShopeeWebhookEndpoints();
 app.MapTestNotificationEndpoints();
+app.MapSimulateOrderEndpoints();
 
 app.Run();
