@@ -6,15 +6,18 @@ Tests (in order):
   1. Missing secret → 401
   2. Wrong secret → 401
   3. Invalid tenantId format → 400
-  4. Valid tenant with LINE + Sheets connections → 200 + lineSuccess=true + sheetsSuccess=true
+  4. Valid tenant with LINE connection → 200 + orderId has SIM- prefix
+     (lineSuccess=true only asserted with RYLA_E2E_LINE=1)
   5. Unknown tenant (no connections) → 200 + lineSuccess=false
 
 Pre-requisites:
   - App running at localhost:5282 (make dev && dotnet run)
-  - Seed tenant 11111111-1111-1111-1111-111111111111 with line_oa + google_sheets connections in local DB
+  - Seed tenant 11111111-1111-1111-1111-111111111111 with line_oa connection in local DB
+  - RYLA_E2E_LINE=1 to assert actual LINE delivery success (requires real LINE token)
 """
 
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -59,12 +62,13 @@ def run_tests() -> bool:
     code, _ = post({"tenantId": "not-a-uuid", "platform": "tiktok_shop"}, secret=INTERNAL_SECRET)
     test("invalid tenantId → 400", code == 400, f"got {code}")
 
-    # 4. Valid tenant → 200 + lineSuccess=true (requires seeded LINE + Sheets connections)
+    # 4. Valid tenant → 200 + SIM- orderId (lineSuccess only asserted with RYLA_E2E_LINE=1)
     code, body = post({"tenantId": VALID_TENANT_ID, "platform": "tiktok_shop"}, secret=INTERNAL_SECRET)
     test("valid tenant → 200", code == 200, f"got {code}")
-    test("lineSuccess=true", body.get("lineSuccess") is True, str(body))
     order_id: str = body.get("orderId", "")
     test("orderId has SIM- prefix", order_id.startswith("SIM-"), f"orderId={order_id}")
+    if os.environ.get("RYLA_E2E_LINE") == "1":
+        test("lineSuccess=true (real LINE delivery)", body.get("lineSuccess") is True, str(body))
 
     # 5. Unknown tenant → 200 + lineSuccess=false (no connections)
     code, body = post({"tenantId": UNKNOWN_TENANT_ID, "platform": "tiktok_shop"}, secret=INTERNAL_SECRET)
