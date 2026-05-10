@@ -52,7 +52,7 @@ TestResults/
 
 # IDEs
 .idea/
-.vscode/settings.json
+.vscode/
 *.suo
 
 # Claude Code local settings (personal overrides, ไม่ share ระหว่าง developers)
