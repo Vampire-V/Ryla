@@ -1,0 +1,10 @@
+pr: 11
+type: fix
+scope: "supabase"
+title: "Add tenant quota migration, fix Google OAuth redirect_uri, improve gitignore"
+description: |
+  - เพิ่ม migration tenants_add_plan_quota (plan, monthly_quota, current_period_count, current_period_start)
+  - แก้ Google OAuth local dev: เพิ่ม redirect_uri ใน supabase/config.toml
+  - เพิ่ม gitignore patterns สำหรับ client_secret JSON และ local tooling files
+breaking: false
+migration: true
