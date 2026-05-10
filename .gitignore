@@ -25,6 +25,7 @@ supabase/.temp/
 
 # Google Cloud service account key files (NEVER commit)
 ryla-*.json
+client_secret_*.apps.googleusercontent.com.json
 
 # Secrets — NEVER commit these
 .env
@@ -56,13 +57,6 @@ TestResults/
 
 # Claude Code local settings (personal overrides, ไม่ share ระหว่าง developers)
 .claude/settings.local.json
-.claude/review-passed.json
-
-# Superpowers plugin local cache
-.superpowers/
-
-# VS Code (ทำงานคนเดียว ไม่ต้อง share)
-.vscode/
 
 # Skills (reinstall via: npx skills install — lockfile: skills-lock.json)
 .agents/skills/
@@ -72,3 +66,11 @@ skills/
 # Other AI editor configs
 .kiro/
 .windsurf/
+
+# Demo screenshots (local only)
+demo-*.png
+
+# Local tooling
+.playwright-mcp/
+.superpowers/
+.claude/review-passed.json
