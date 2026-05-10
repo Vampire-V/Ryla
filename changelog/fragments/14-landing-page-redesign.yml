@@ -1,0 +1,12 @@
+pr: 14
+type: feat
+scope: "frontend"
+title: "Landing page redesign — hero mockup + 4 sections"
+description: |
+  Hero section (dark bg) มี LINE notification mockup พร้อม animation sequence:
+  typing indicator → order bubble → Sheets confirmation → stat counter
+  How it works (3 ขั้นตอน), Features 2×2 grid, CTA section indigo
+  ใช้ lucide-react icons และ design tokens จาก RYLA-8
+  Pure CSS animations + React client components สำหรับ counter และ scroll-fade
+breaking: false
+migration: false
