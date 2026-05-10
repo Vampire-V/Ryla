@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar userName={userName} />
-      <main className="flex-1 overflow-auto bg-slate-50 p-6">{children}</main>
+      <main className="flex-1 overflow-auto bg-[var(--color-page-bg)] p-6">{children}</main>
     </div>
   )
 }

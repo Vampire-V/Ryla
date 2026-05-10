@@ -14,15 +14,18 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--color-page-bg)]">
+      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-10 shadow-md">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-900">Ryla</h1>
-          <p className="mt-1 text-sm text-slate-500">เข้าสู่ระบบเพื่อจัดการ integrations</p>
+          <div className="mb-4 mx-auto w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">R</span>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900">Ryla</h1>
+          <p className="mt-1 text-sm text-slate-600">เข้าสู่ระบบเพื่อจัดการ integrations</p>
         </div>
         <button
           onClick={handleGoogleLogin}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <GoogleIcon />
           Sign in with Google

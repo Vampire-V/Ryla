@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getTenantId, upsertSheetsConnection } from '@/lib/connections'
+import { Sheet, Upload, CheckCircle2 } from 'lucide-react'
 
 type ServiceAccountKey = {
   type: string
@@ -99,8 +100,8 @@ export function SheetsForm({ initialSpreadsheetId = '', initialWorksheetName = '
   return (
     <form onSubmit={handleSubmit} className="max-w-md">
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-xl text-white">
-          📊
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
+          <Sheet size={20} />
         </div>
         <div>
           <h2 className="font-bold text-slate-900">เชื่อมต่อ Google Sheets</h2>
@@ -128,13 +129,13 @@ export function SheetsForm({ initialSpreadsheetId = '', initialWorksheetName = '
         >
           {parsedEmail ? (
             <>
-              <span className="text-2xl">✅</span>
+              <CheckCircle2 size={28} className="text-green-600" />
               <p className="mt-1 text-sm font-semibold text-green-700">โหลดสำเร็จ</p>
               <p className="mt-0.5 text-xs text-slate-500 break-all">{parsedEmail}</p>
             </>
           ) : (
             <>
-              <span className="text-3xl">📂</span>
+              <Upload size={28} className="text-indigo-500" />
               <p className="mt-1 text-sm font-semibold text-indigo-700">ลากไฟล์ .json มาวาง</p>
               <p className="text-xs text-violet-600">หรือคลิกเพื่อเลือกไฟล์</p>
             </>
@@ -147,7 +148,7 @@ export function SheetsForm({ initialSpreadsheetId = '', initialWorksheetName = '
           onChange={handleFileChange}
           className="hidden"
         />
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           ดาวน์โหลดจาก Google Cloud → IAM & Admin → Service Accounts → Keys
         </p>
       </div>
@@ -163,7 +164,7 @@ export function SheetsForm({ initialSpreadsheetId = '', initialWorksheetName = '
           placeholder="1Spg-ht3g6D5V9j2xNTP..."
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           จาก URL: docs.google.com/spreadsheets/d/<strong>[ID นี้]</strong>/edit
         </p>
       </div>
@@ -177,7 +178,7 @@ export function SheetsForm({ initialSpreadsheetId = '', initialWorksheetName = '
           placeholder="Orders"
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <p className="mt-1 text-xs text-slate-400">ค่า default: Orders</p>
+        <p className="mt-1 text-xs text-slate-500">ค่า default: Orders</p>
       </div>
 
       {error && (
