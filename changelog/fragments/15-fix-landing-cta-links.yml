@@ -1,0 +1,9 @@
+pr: 15
+type: fix
+scope: "frontend"
+title: "Landing page CTA buttons ชี้ไปที่ route ที่ถูกต้อง"
+description: |
+  แก้ /auth/signup และ /auth/login → /login
+  route เดิมไม่มีอยู่ใน app ทำให้ผู้ใช้เจอ 404 เมื่อกด CTA
+breaking: false
+migration: false
