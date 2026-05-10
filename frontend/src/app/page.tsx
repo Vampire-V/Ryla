@@ -69,13 +69,13 @@ export default function HomePage() {
 
             <div className="anim-cta mt-8 flex flex-col gap-3 sm:flex-row">
               <a
-                href="/auth/signup"
+                href="/login"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
                 เริ่มใช้งานฟรี <ArrowRight size={15} />
               </a>
               <a
-                href="/auth/login"
+                href="/login"
                 className="inline-flex items-center justify-center rounded-lg border border-slate-600 px-6 py-3 text-sm font-semibold text-slate-300 transition-colors hover:border-slate-400 hover:text-white"
               >
                 เข้าสู่ระบบ
@@ -156,7 +156,7 @@ export default function HomePage() {
             เริ่มต้นฟรี ไม่ต้องใส่ข้อมูลบัตรเครดิต
           </p>
           <a
-            href="/auth/signup"
+            href="/login"
             className="scroll-fade inline-flex items-center gap-2 rounded-lg bg-white px-8 py-3 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50"
           >
             เริ่มใช้งานฟรี <ArrowRight size={15} />
