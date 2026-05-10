@@ -19,6 +19,8 @@ namespace Ryla.Api.Extensions;
 [JsonSerializable(typeof(ShopeeWebhookPayload))]
 [JsonSerializable(typeof(TestNotificationRequest))]
 [JsonSerializable(typeof(TestNotificationResponse))]
+[JsonSerializable(typeof(SimulateOrderRequest))]
+[JsonSerializable(typeof(SimulateOrderResponse))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false)]

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { SimulatorButton } from '@/components/webhook/SimulatorButton'
 
 export default function WebhookPage() {
   const [webhookUrl] = useState(() =>
@@ -60,6 +61,21 @@ export default function WebhookPage() {
             <li>วาง URL ด้านบนใน Order Status Update URL</li>
             <li>กด Save และรอ Shopee ยืนยัน</li>
           </ol>
+        </div>
+      </div>
+
+      {/* Simulator section */}
+      <div className="mt-8 max-w-xl">
+        <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          ทดสอบระบบ
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="mb-1 text-sm font-medium text-slate-800">จำลองออเดอร์ใหม่</p>
+          <p className="mb-4 text-xs text-slate-500">
+            กดปุ่มด้านล่างเพื่อจำลองว่ามีออเดอร์ใหม่เข้ามาทาง URL นี้
+            แล้วตรวจสอบว่า LINE และ Sheets ได้รับข้อมูลถูกต้อง
+          </p>
+          <SimulatorButton platform="tiktok_shop" />
         </div>
       </div>
     </div>

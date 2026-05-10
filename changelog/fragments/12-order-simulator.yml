@@ -1,0 +1,11 @@
+pr: 12
+type: feat
+scope: "frontend,api,core"
+title: "Add Order Simulator to Webhook URL page"
+description: |
+  - ปุ่ม "จำลองออเดอร์ใหม่ — TikTok Shop" ใน Webhook URL page
+  - ส่ง synthetic order ผ่าน full pipeline (LINE push + Google Sheets append)
+  - แสดง result แยก LINE/Sheets พร้อม Order ID ที่จำลอง (SIM-YYYYMMDDHHMMSS)
+  - โครงสร้างรองรับเพิ่ม platform ใหม่ได้ง่าย (SIMULATOR_PLATFORMS const)
+breaking: false
+migration: false
