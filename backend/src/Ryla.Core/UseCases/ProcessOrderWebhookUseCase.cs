@@ -122,18 +122,11 @@ internal sealed class ProcessOrderWebhookUseCase(
     private static IReadOnlyList<string> FormatRow(OrderWebhookContext ctx) =>
     [
         DateTime.UtcNow.ToString("o"),
-        PlatformDisplayName(ctx.Platform),
+        ctx.Platform.DisplayName(),
         ctx.OrderId,
         ctx.EventType
     ];
 
     private static string FormatLineMessage(Platform platform, string orderId, string eventType)
-        => $"\U0001f514 {PlatformDisplayName(platform)}: Order #{orderId} \u2014 {eventType}";
-
-    private static string PlatformDisplayName(Platform platform) => platform switch
-    {
-        Platform.TikTokShop => "TikTok Shop",
-        Platform.Shopee => "Shopee",
-        _ => platform.ToString()
-    };
+        => $"\U0001f514 {platform.DisplayName()}: Order #{orderId} \u2014 {eventType}";
 }

@@ -7,7 +7,8 @@ type SimulateResult = {
   lineSuccess: boolean
   sheetsSuccess: boolean
   orderId: string
-  error: string | null
+  lineError: string | null
+  sheetsError: string | null
 }
 
 type Props = {
@@ -30,7 +31,7 @@ export function SimulatorButton({ platform }: Props) {
       const json = (await res.json()) as SimulateResult
       setResult(json)
     } catch {
-      setResult({ lineSuccess: false, sheetsSuccess: false, orderId: '', error: 'ไม่สามารถเชื่อมต่อได้' })
+      setResult({ lineSuccess: false, sheetsSuccess: false, orderId: '', lineError: 'ไม่สามารถเชื่อมต่อได้', sheetsError: null })
     } finally {
       setLoading(false)
     }
@@ -56,13 +57,13 @@ export function SimulatorButton({ platform }: Props) {
             <div className="flex items-center gap-2">
               <span>{result.lineSuccess ? '✅' : '❌'}</span>
               <span className="text-slate-700">
-                LINE: {result.lineSuccess ? 'ส่งสำเร็จ เช็ค LINE ของคุณ' : (result.error ?? 'ยังไม่ได้ตั้งค่า LINE OA')}
+                LINE: {result.lineSuccess ? 'ส่งสำเร็จ เช็ค LINE ของคุณ' : (result.lineError ?? 'เกิดข้อผิดพลาด')}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span>{result.sheetsSuccess ? '✅' : '⚠️'}</span>
               <span className="text-slate-700">
-                Sheets: {result.sheetsSuccess ? 'บันทึกแล้ว' : 'ยังไม่ได้ตั้งค่า Google Sheets'}
+                Sheets: {result.sheetsSuccess ? 'บันทึกแล้ว' : (result.sheetsError ?? 'เกิดข้อผิดพลาด')}
               </span>
             </div>
           </div>

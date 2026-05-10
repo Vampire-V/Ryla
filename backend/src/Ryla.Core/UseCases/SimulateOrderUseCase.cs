@@ -24,16 +24,15 @@ internal sealed class SimulateOrderUseCase(
         CancellationToken ct = default)
     {
         var orderId = $"SIM-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-        var platformName = PlatformDisplayName(platform);
 
-        var (lineSuccess, lineError) = await SendLineAsync(tenantId, platformName, orderId, ct);
-        var (sheetsSuccess, sheetsError) = await AppendSheetsAsync(tenantId, platformName, orderId, ct);
+        var (lineSuccess, lineError) = await SendLineAsync(tenantId, platform, orderId, ct);
+        var (sheetsSuccess, sheetsError) = await AppendSheetsAsync(tenantId, platform, orderId, ct);
 
         return new SimulateOrderResult(lineSuccess, lineError, sheetsSuccess, sheetsError, orderId);
     }
 
     private async Task<(bool Success, string? Error)> SendLineAsync(
-        Guid tenantId, string platformName, string orderId, CancellationToken ct)
+        Guid tenantId, Platform platform, string orderId, CancellationToken ct)
     {
         var creds = await connectionRepository.GetLineCredentialsAsync(tenantId, ct);
         if (creds is null)
@@ -42,7 +41,7 @@ internal sealed class SimulateOrderUseCase(
             return (false, "ยังไม่ได้ตั้งค่า LINE OA");
         }
 
-        var message = $"\U0001f514 {platformName}: Order #{orderId} — {EventType}";
+        var message = $"\U0001f514 {platform.DisplayName()}: Order #{orderId} — {EventType}";
         var result = await lineNotifier.PushAsync(creds.ChannelAccessToken, creds.TargetUserId, message, ct);
 
         if (!result.Success)
@@ -57,7 +56,7 @@ internal sealed class SimulateOrderUseCase(
     }
 
     private async Task<(bool Success, string? Error)> AppendSheetsAsync(
-        Guid tenantId, string platformName, string orderId, CancellationToken ct)
+        Guid tenantId, Platform platform, string orderId, CancellationToken ct)
     {
         var creds = await connectionRepository.GetGoogleSheetsCredentialsAsync(tenantId, ct);
         if (creds is null)
@@ -69,7 +68,7 @@ internal sealed class SimulateOrderUseCase(
         IReadOnlyList<string> row =
         [
             DateTime.UtcNow.ToString("o"),
-            platformName,
+            platform.DisplayName(),
             orderId,
             EventType,
         ];
@@ -86,11 +85,4 @@ internal sealed class SimulateOrderUseCase(
         logger.LogInformation("SimulateOrder: Sheets row appended for tenant {TenantId}", tenantId);
         return (true, null);
     }
-
-    private static string PlatformDisplayName(Platform platform) => platform switch
-    {
-        Platform.TikTokShop => "TikTok Shop",
-        Platform.Shopee => "Shopee",
-        _ => platform.ToString()
-    };
 }

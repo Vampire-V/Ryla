@@ -31,10 +31,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ lineSuccess: false, sheetsSuccess: false, error: 'Profile not found' }, { status: 404 })
   }
 
-  const body = (await request.json()) as { platform: SimulatorPlatform }
   const backendUrl = process.env['NEXT_PUBLIC_BACKEND_URL'] ?? 'http://localhost:5282'
 
   try {
+    const body = (await request.json()) as { platform: SimulatorPlatform }
     const res = await fetch(`${backendUrl}/api/simulate-order`, {
       method: 'POST',
       signal: AbortSignal.timeout(10000),
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
       lineSuccess: boolean
       sheetsSuccess: boolean
       orderId: string
-      error: string | null
+      lineError: string | null
+      sheetsError: string | null
     }
     return NextResponse.json(json, { status: res.ok ? 200 : res.status })
   } catch {

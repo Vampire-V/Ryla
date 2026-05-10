@@ -8,7 +8,7 @@ using Ryla.Core.UseCases;
 namespace Ryla.Api.Endpoints;
 
 public record SimulateOrderRequest(string TenantId, string Platform = "tiktok_shop");
-public record SimulateOrderResponse(bool LineSuccess, bool SheetsSuccess, string OrderId, string? Error);
+public record SimulateOrderResponse(bool LineSuccess, bool SheetsSuccess, string OrderId, string? LineError, string? SheetsError);
 
 public static class SimulateOrderEndpoints
 {
@@ -31,7 +31,7 @@ public static class SimulateOrderEndpoints
             }
 
             if (!Guid.TryParse(request.TenantId, out var tenantId))
-                return Results.BadRequest(new SimulateOrderResponse(false, false, string.Empty, "Invalid tenantId format"));
+                return Results.BadRequest(new SimulateOrderResponse(false, false, string.Empty, "Invalid tenantId format", null));
 
             var platform = request.Platform.ToLowerInvariant() switch
             {
@@ -45,7 +45,8 @@ public static class SimulateOrderEndpoints
                 result.LineSuccess,
                 result.SheetsSuccess,
                 result.OrderId,
-                result.LineSuccess ? null : result.LineError));
+                result.LineError,
+                result.SheetsError));
         })
             .WithName("PostSimulateOrder")
             .WithSummary("Simulate a new order event through the full pipeline (LINE + Sheets)")
