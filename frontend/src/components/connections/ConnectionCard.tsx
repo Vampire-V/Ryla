@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { MessageSquare, Sheet, TestTube2, ExternalLink, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import { deleteConnection } from '@/lib/connections'
 import type { Connection } from '@/lib/connections'
 
@@ -65,14 +66,14 @@ export function ConnectionCard({ connection }: Props) {
 
       <div className="flex items-center gap-3">
         <div
-          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-lg text-white ${
+          className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-white ${
             isLine ? 'bg-[#00B900]' : 'bg-blue-600'
           }`}
         >
-          {isLine ? '💬' : '📊'}
+          {isLine ? <MessageSquare size={20} /> : <Sheet size={20} />}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-slate-900">{isLine ? 'LINE OA' : 'Google Sheets'}</div>
+          <div className="text-base font-semibold text-slate-900">{isLine ? 'LINE OA' : 'Google Sheets'}</div>
           <div className="truncate text-xs text-slate-500">
             {isLine
               ? `target: ${creds['target_user_id']?.slice(0, 18)}...`
@@ -80,7 +81,7 @@ export function ConnectionCard({ connection }: Props) {
           </div>
         </div>
         <span className="flex-shrink-0 rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
-          ● Connected
+          <CheckCircle2 size={13} className="mr-1 inline" /> Connected
         </span>
       </div>
 
@@ -91,7 +92,7 @@ export function ConnectionCard({ connection }: Props) {
             disabled={testLoading}
             className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-xs text-green-700 transition-colors hover:bg-green-100 disabled:opacity-50"
           >
-            {testLoading ? '...' : '⚡ ส่งทดสอบ'}
+            {testLoading ? '...' : <><TestTube2 size={13} className="mr-1 inline" />ส่งทดสอบ</>}
           </button>
         )}
         {isSheets && creds['spreadsheet_id'] && (
@@ -101,20 +102,22 @@ export function ConnectionCard({ connection }: Props) {
             rel="noreferrer"
             className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1 text-xs text-blue-700 hover:bg-blue-100"
           >
-            🔗 เปิด Spreadsheet
+            <><ExternalLink size={13} className="mr-1 inline" />เปิด Spreadsheet</>
           </a>
         )}
         <a
           href={editHref}
-          className="rounded-md border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
+          title="แก้ไข"
+          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
         >
-          ✏️ แก้ไข
+          <Pencil size={13} />
         </a>
         <button
           onClick={handleDelete}
-          className="ml-auto rounded-md border border-red-100 bg-white px-3 py-1 text-xs text-red-500 hover:bg-red-50"
+          title="ลบ"
+          className="ml-auto rounded-md border border-red-100 bg-white px-2 py-1 text-xs text-red-500 hover:bg-red-50"
         >
-          🗑 ลบ
+          <Trash2 size={13} />
         </button>
       </div>
     </div>

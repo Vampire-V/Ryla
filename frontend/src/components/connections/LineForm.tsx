@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getTenantId, upsertLineConnection } from '@/lib/connections'
+import { MessageSquare, Info } from 'lucide-react'
 
 type Props = {
   initialToken?: string
@@ -44,8 +45,8 @@ export function LineForm({ initialToken = '', initialUserId = '' }: Props) {
   return (
     <form onSubmit={handleSubmit} className="max-w-md">
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00B900] text-xl text-white">
-          💬
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00B900] text-white">
+          <MessageSquare size={20} />
         </div>
         <div>
           <h2 className="font-bold text-slate-900">เชื่อมต่อ LINE OA</h2>
@@ -64,7 +65,7 @@ export function LineForm({ initialToken = '', initialUserId = '' }: Props) {
           placeholder="pivLt6NPJ0oL7kAe..."
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           LINE Developers Console → Messaging API tab → Channel access token (long-lived)
         </p>
       </div>
@@ -80,13 +81,13 @@ export function LineForm({ initialToken = '', initialUserId = '' }: Props) {
           placeholder="U085b665a102afe19..."
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           LINE OA Manager → Basic settings → Your user ID
         </p>
       </div>
 
       <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-xs text-green-700">
-        💡 ทดสอบ LINE จะส่งข้อความไปยัง User ID ที่กรอก
+        <Info size={13} className="mr-1.5 inline flex-shrink-0" /> ทดสอบ LINE จะส่งข้อความไปยัง User ID ที่กรอก
       </div>
 
       {error && (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Copy, Check, Webhook, FlaskConical } from 'lucide-react'
 import { SimulatorButton } from '@/components/webhook/SimulatorButton'
 
 export default function WebhookPage() {
@@ -30,14 +31,14 @@ export default function WebhookPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-lg font-semibold text-slate-900">Webhook URL</h1>
+      <h1 className="mb-1 text-2xl font-bold text-slate-900">Webhook URL</h1>
       <p className="mb-6 text-sm text-slate-500">
         นำ URL นี้ไปตั้งค่าใน Shopee Open Platform → Webhook Settings
       </p>
 
       <div className="max-w-xl rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Shopee Webhook URL
+          <Webhook size={14} className="mr-1.5 inline" />Shopee Webhook URL
         </div>
         <div className="flex items-center gap-2">
           <code className="flex-1 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-800 break-all">
@@ -49,25 +50,34 @@ export default function WebhookPage() {
             disabled={!webhookUrl}
             className="flex-shrink-0 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40"
           >
-            {copied ? '✅ Copied' : '📋 Copy'}
+            {copied ? <><Check size={14} className="mr-1 inline" />Copied</> : <><Copy size={14} className="mr-1 inline" />Copy</>}
           </button>
         </div>
 
         <div className="mt-4 rounded-md bg-amber-50 p-3 text-xs text-amber-800">
           <p className="font-semibold">วิธีตั้งค่าใน Shopee Open Platform:</p>
-          <ol className="mt-1 ml-4 list-decimal space-y-1">
-            <li>เข้า Shopee Open Platform → My Apps → [app ของคุณ]</li>
-            <li>ไปที่ Webhook Settings</li>
-            <li>วาง URL ด้านบนใน Order Status Update URL</li>
-            <li>กด Save และรอ Shopee ยืนยัน</li>
-          </ol>
+          <div className="mt-2 space-y-1.5">
+            {[
+              'เข้า Shopee Open Platform → My Apps → [app ของคุณ]',
+              'ไปที่ Webhook Settings',
+              'วาง URL ด้านบนใน Order Status Update URL',
+              'กด Save และรอ Shopee ยืนยัน',
+            ].map((step, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800">
+                  {i + 1}
+                </span>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Simulator section */}
       <div className="mt-8 max-w-xl">
         <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-          ทดสอบระบบ
+          <FlaskConical size={14} className="mr-1.5 inline" />ทดสอบระบบ
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="mb-1 text-sm font-medium text-slate-800">จำลองออเดอร์ใหม่</p>

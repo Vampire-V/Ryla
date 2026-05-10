@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { AlertTriangle, CheckCircle2, XCircle, Zap } from 'lucide-react'
 import { PLATFORM_LABELS, type SimulatorPlatform } from '@/lib/simulator/platforms'
 
 type SimulateResult = {
@@ -45,7 +46,7 @@ export function SimulatorButton({ platform }: Props) {
         disabled={loading}
         className="w-full rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
       >
-        {loading ? 'กำลังจำลอง...' : `จำลองออเดอร์ใหม่ — ${PLATFORM_LABELS[platform]}`}
+        {loading ? 'กำลังจำลอง...' : <><Zap size={14} className="mr-1.5 inline" />{`จำลองออเดอร์ใหม่ — ${PLATFORM_LABELS[platform]}`}</>}
       </button>
 
       {result && (
@@ -55,13 +56,17 @@ export function SimulatorButton({ platform }: Props) {
           )}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span>{result.lineSuccess ? '✅' : '❌'}</span>
+              {result.lineSuccess
+                ? <CheckCircle2 size={14} className="flex-shrink-0 text-green-600" />
+                : <XCircle size={14} className="flex-shrink-0 text-red-500" />}
               <span className="text-slate-700">
                 LINE: {result.lineSuccess ? 'ส่งสำเร็จ เช็ค LINE ของคุณ' : (result.lineError ?? 'เกิดข้อผิดพลาด')}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span>{result.sheetsSuccess ? '✅' : '⚠️'}</span>
+              {result.sheetsSuccess
+                ? <CheckCircle2 size={14} className="flex-shrink-0 text-green-600" />
+                : <AlertTriangle size={14} className="flex-shrink-0 text-amber-500" />}
               <span className="text-slate-700">
                 Sheets: {result.sheetsSuccess ? 'บันทึกแล้ว' : (result.sheetsError ?? 'เกิดข้อผิดพลาด')}
               </span>
