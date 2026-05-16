@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Ryla.Core.Ports.Outbound;
@@ -11,6 +12,7 @@ using Ryla.Infrastructure.Adapters.Tenants;
 
 namespace Ryla.Infrastructure;
 
+[ExcludeFromCodeCoverage] // DI wiring — no business logic to test
 public static class DependencyInjection
 {
     public static IServiceCollection AddRylaInfrastructureServices(

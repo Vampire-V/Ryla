@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Ryla.Infrastructure.Adapters.Shopee;
 
 // ─── OAuth response types ──────────────────────────────────────────────────
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeTokenExchangeResponse(
     [property: JsonPropertyName("access_token")] string AccessToken,
     [property: JsonPropertyName("refresh_token")] string RefreshToken,
@@ -12,6 +14,7 @@ internal sealed record ShopeeTokenExchangeResponse(
     [property: JsonPropertyName("error")] string? Error,
     [property: JsonPropertyName("message")] string? Message);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeRefreshTokenApiResponse(
     [property: JsonPropertyName("access_token")] string AccessToken,
     [property: JsonPropertyName("expire_in")] int ExpireIn,
@@ -20,14 +23,17 @@ internal sealed record ShopeeRefreshTokenApiResponse(
 
 // ─── Order detail response types ──────────────────────────────────────────
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeOrderDetailApiResponse(
     [property: JsonPropertyName("error")] string? Error,
     [property: JsonPropertyName("message")] string? Message,
     [property: JsonPropertyName("response")] ShopeeOrderDetailResponseBody? Response);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeOrderDetailResponseBody(
     [property: JsonPropertyName("order_list")] IReadOnlyList<ShopeeOrderApiItem>? OrderList);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeOrderApiItem(
     [property: JsonPropertyName("order_sn")] string OrderSn,
     [property: JsonPropertyName("order_status")] string OrderStatus,
@@ -35,6 +41,7 @@ internal sealed record ShopeeOrderApiItem(
     [property: JsonPropertyName("escrow_amount_info")] ShopeeEscrowInfo? EscrowAmountInfo,
     [property: JsonPropertyName("item_list")] IReadOnlyList<ShopeeOrderApiItemDetail>? ItemList);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeEscrowInfo(
     [property: JsonPropertyName("buyer_total_amount")] double BuyerTotalAmount,
     [property: JsonPropertyName("adjusted_total_escrow_amount")] double AdjustedTotalEscrowAmount,
@@ -44,6 +51,7 @@ internal sealed record ShopeeEscrowInfo(
     [property: JsonPropertyName("escrow_voucher_from_seller")] double EscrowVoucherFromSeller,
     [property: JsonPropertyName("shopee_discount")] double ShopeeDiscount);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeOrderApiItemDetail(
     [property: JsonPropertyName("item_sku")] string ItemSku,
     [property: JsonPropertyName("model_sku")] string? ModelSku,
@@ -59,15 +67,18 @@ internal sealed record ShopeeOrderApiItemDetail(
 [JsonSerializable(typeof(ShopeeRefreshTokenApiResponse))]
 [JsonSerializable(typeof(ShopeeOrderDetailApiResponse))]
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
+[ExcludeFromCodeCoverage]
 internal sealed partial class ShopeeApiJsonContext : JsonSerializerContext;
 
 // ─── Request types ─────────────────────────────────────────────────────────
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeTokenExchangeRequest(
     [property: JsonPropertyName("code")] string Code,
     [property: JsonPropertyName("shop_id")] long ShopId,
     [property: JsonPropertyName("partner_id")] long PartnerId);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ShopeeRefreshTokenRequest(
     [property: JsonPropertyName("refresh_token")] string RefreshToken,
     [property: JsonPropertyName("shop_id")] long ShopId,

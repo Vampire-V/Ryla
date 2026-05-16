@@ -33,4 +33,13 @@ public sealed class ShopeeOptions
 
     /// <summary>Redirect URL หลัง OAuth consent (ต่างจาก webhook CallbackUrl)</summary>
     public string OAuthRedirectUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Secret สำหรับ HMAC-sign OAuth state param (ป้องกัน CSRF)
+    /// ต้องตั้งค่าใน user-secrets / Key Vault — ห้าม hardcode
+    /// </summary>
+    public string OAuthStateSecret { get; set; } = string.Empty;
+
+    /// <summary>อายุสูงสุดของ OAuth state (วินาที) ก่อนถือว่า expired</summary>
+    public int OAuthStateMaxAgeSeconds { get; set; } = 600; // 10 minutes
 }

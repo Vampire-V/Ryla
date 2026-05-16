@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Ryla.Core.Domain.Orders;
 using Ryla.Core.Ports.Outbound;
 using Ryla.Infrastructure.Adapters.Database;
@@ -10,6 +11,7 @@ namespace Ryla.Infrastructure.Adapters.Shopee;
 /// </summary>
 internal sealed class ShopeeTokenAdapter(IDbConnectionFactory connectionFactory) : IShopeeTokenPort
 {
+    [ExcludeFromCodeCoverage] // JOINs vault.decrypted_secrets — Supabase Vault not available in test containers; covered by E2E tests
     public async Task<ShopeeTokenSecrets?> GetTokenAsync(Guid tenantId, CancellationToken ct = default)
     {
         await using var conn = await connectionFactory.CreateAsync(ct);
@@ -41,6 +43,7 @@ internal sealed class ShopeeTokenAdapter(IDbConnectionFactory connectionFactory)
             ExpiresAt: reader.GetFieldValue<DateTimeOffset>(1));
     }
 
+    [ExcludeFromCodeCoverage] // calls vault.create_secret — covered by E2E tests
     public async Task SaveTokenAsync(
         Guid tenantId, long shopId, string accessToken, string refreshToken,
         DateTimeOffset expiresAt, CancellationToken ct = default)
@@ -82,6 +85,7 @@ internal sealed class ShopeeTokenAdapter(IDbConnectionFactory connectionFactory)
         }
     }
 
+    [ExcludeFromCodeCoverage] // calls vault.update_secret — covered by E2E tests
     public async Task UpdateAccessTokenAsync(
         Guid tenantId, string newAccessToken, DateTimeOffset newExpiresAt,
         CancellationToken ct = default)
@@ -153,6 +157,7 @@ internal sealed class ShopeeTokenAdapter(IDbConnectionFactory connectionFactory)
         return result is Guid tenantId ? tenantId : null;
     }
 
+    [ExcludeFromCodeCoverage] // vault.create_secret — covered by E2E tests
     private static async Task<Guid> CreateVaultSecretAsync(
         Npgsql.NpgsqlConnection conn,
         Npgsql.NpgsqlTransaction transaction,

@@ -73,14 +73,9 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('tenant_id')
-    .eq('id', user.id)
-    .single()
-
-  const tenantId = profile?.tenant_id
-  if (!tenantId) redirect('/login')
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/login')
+  // Backend resolve tenant_id จาก JWT sub claim — ไม่ใช้ X-Tenant-Id header (แก้ IDOR)
 
   const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? ''
 
@@ -91,7 +86,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
     const res = await fetch(
       `${apiUrl}/api/profit/orders?range=${range}&page=${page}&limit=${PAGE_SIZE}`,
       {
-        headers: { 'X-Tenant-Id': tenantId },
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
         cache: 'no-store',
       },
     )

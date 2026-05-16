@@ -4,11 +4,11 @@
 
 import { useState } from 'react'
 import { Pencil, Check, X, Plus, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import type { SkuCost } from '@/types/profit'
 
 interface SkuCostFormProps {
   items: SkuCost[]
-  tenantId: string
 }
 
 interface EditState {
@@ -21,7 +21,8 @@ interface FormError {
   message: string
 }
 
-export function SkuCostTable({ items: initialItems, tenantId }: SkuCostFormProps) {
+export function SkuCostTable({ items: initialItems }: SkuCostFormProps) {
+  const supabase = createClient()
   const [items, setItems] = useState<SkuCost[]>(initialItems)
   const [editingSku, setEditingSku] = useState<string | null>(null)
   const [editState, setEditState] = useState<EditState>({ itemSku: '', itemName: '', cogs: '' })
@@ -70,11 +71,19 @@ export function SkuCostTable({ items: initialItems, tenantId }: SkuCostFormProps
     setError(null)
 
     try {
+      // ดึง access_token จาก Supabase browser session
+      // ไม่ใช้ X-Tenant-Id header อีกต่อไป (แก้ IDOR)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setError({ message: 'Session หมดอายุ กรุณา login ใหม่' })
+        return null
+      }
+
       const res = await fetch(`${apiUrl}/api/profit/sku-costs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Tenant-Id': tenantId,
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           itemSku: state.itemSku.trim(),

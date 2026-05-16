@@ -1,9 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
+using Ryla.Core.Ports.Outbound;
 using Ryla.Core.UseCases.ProfitDashboard;
 using Ryla.Core.UseCases.ShopeeOAuth;
 using Ryla.Core.UseCases.SkuCosts;
 using Ryla.Core.UseCases.StoreOrderFromWebhook;
 using Ryla.Core.UseCases.SyncOrders;
+using Ryla.Core.UseCases.TenantResolution;
 
 namespace Ryla.Core.UseCases;
 
@@ -37,6 +39,9 @@ public static class CoreServiceCollectionExtensions
         services.AddScoped<IHandleShopeeCallbackUseCase, HandleShopeeCallbackUseCase>();
         services.AddScoped<IRefreshShopeeTokenUseCase, RefreshShopeeTokenUseCase>();
         services.AddScoped<ISyncOrdersUseCase, SyncOrdersUseCase>();
+
+        // Tenant resolution — แก้ IDOR: resolve tenant จาก JWT sub ไม่ใช่ header
+        services.AddScoped<ITenantResolver, TenantResolverService>();
 
         return services;
     }

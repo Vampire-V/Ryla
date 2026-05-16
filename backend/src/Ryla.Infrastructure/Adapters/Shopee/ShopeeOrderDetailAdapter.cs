@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,6 +19,7 @@ internal sealed class ShopeeOrderDetailAdapter(
 {
     private const string OrderDetailPath = "/api/v2/order/get_order_detail";
 
+    [ExcludeFromCodeCoverage] // HTTP + Shopee API — covered by E2E tests
     public async Task<ShopeeOrderDetail?> GetOrderDetailAsync(
         long shopId, string accessToken, string orderSn,
         CancellationToken ct = default)
@@ -69,7 +71,7 @@ internal sealed class ShopeeOrderDetailAdapter(
         return MapToDetail(order);
     }
 
-    private static ShopeeOrderDetail MapToDetail(ShopeeOrderApiItem order)
+    internal static ShopeeOrderDetail MapToDetail(ShopeeOrderApiItem order)
     {
         var escrow = order.EscrowAmountInfo;
         return new ShopeeOrderDetail(
