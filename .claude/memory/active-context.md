@@ -3,7 +3,7 @@
 
 ## Current Sprint Focus
 <!-- Feature หรือ milestone ที่กำลังทำอยู่ -->
-- [ ] [RYLA-9] Real Profit Dashboard — implementation complete on feat/RYLA-9-profit-dashboard, awaiting PR
+- [x] [RYLA-9] Real Profit Dashboard — merged to develop via PR #16 (2026-05-16)
 - [x] Landing page redesign — hero mockup + 4 sections — merged to develop via PR #14 (2026-05-11)
 - [x] [RYLA-8] UI Redesign — Calm Authority design language — merged to develop via PR #13 (2026-05-10)
 - [x] [RYLA-7] Order Simulator — merged to develop via PR #12 (2026-05-10)
@@ -16,13 +16,12 @@
 - [x] [RYLA-1] Tenant Onboarding — merged to main, tagged v0.1.0
 
 ## Last 3 Completed Tasks
-1. **PR #14 merged** — Landing page redesign: hero mockup, 4 sections, LINE notification animation (2026-05-11)
-2. **PR #13 merged** — RYLA-8 UI Redesign: Calm Authority design language, lucide-react icons, sidebar/typography overhaul (2026-05-10)
-2. **PR #12 merged** — RYLA-7 Order Simulator: จำลองออเดอร์ TikTok Shop ผ่าน full pipeline (LINE + Sheets) (2026-05-10)
-3. **PR #11 merged** — tenant quota migration, Google OAuth redirect_uri fix, gitignore improvements (2026-05-10)
+1. **PR #16 merged** — RYLA-9 Real Profit Dashboard: Shopee OAuth, orders/margin analytics, COGS, Azure Functions timer, IDOR fix, 190 tests (2026-05-16)
+2. **PR #14 merged** — Landing page redesign: hero mockup, 4 sections, LINE notification animation (2026-05-11)
+3. **PR #13 merged** — RYLA-8 UI Redesign: Calm Authority design language, lucide-react icons, sidebar/typography overhaul (2026-05-10)
 
 ## Active Branch
-- `feat/RYLA-9-profit-dashboard` — implementation complete, pending Human Approval Gate before PR
+- `develop` — ทุก feature ถึง RYLA-9 merge แล้ว พร้อม release v0.3.0
 
 ## Latest Release
 - `v0.2.0` — Shopee webhook + LINE OA push + Google Sheets adapter (2026-04-25)
@@ -37,7 +36,6 @@
 - None
 
 ## Next Up
-- **RYLA-9 PR** — สร้าง PR หลัง user approve (Human Approval Gate)
-- **v0.3.0 release** — compile RYLA-6 + RYLA-7 + RYLA-8 + landing page + PR #10-#14 into release
+- **v0.3.0 release** — compile RYLA-6 + RYLA-7 + RYLA-8 + landing page + RYLA-9 (PR #10-#16) into release
 - **Azure Functions deployment** — infrastructure setup สำหรับ SyncOrdersTimerFunction
 - **Shopee / TikTok real validation** — defer (ต้องมี business partner account)
