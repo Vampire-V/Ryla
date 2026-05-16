@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Settings2, Webhook, LogOut } from 'lucide-react'
+import { Settings2, Webhook, LogOut, TrendingUp } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   { href: '/connections', label: 'Connections', Icon: Settings2 },
   { href: '/webhook', label: 'Webhook URL', Icon: Webhook },
+  { href: '/profit', label: 'Profit Dashboard', Icon: TrendingUp },
 ]
 
 export function Sidebar({ userName }: { userName: string }) {
