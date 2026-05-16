@@ -33,6 +33,15 @@ Request → Ryla.Api (Adapter: Inbound) → Ryla.Core (Port/UseCase) → Ryla.In
 - No client-side data fetching libraries (SWR/React Query) until justified by
   complexity. Use Next.js `fetch` with cache tags first.
 
+### Design System
+
+**อ่าน `DESIGN.md` ก่อน generate UI ทุกครั้ง** — ไฟล์นี้เป็น single source of truth สำหรับ
+colors, typography, spacing, component tokens, และ do's & don'ts
+
+- ใช้ CSS token (`--color-brand`, etc.) เสมอ — ห้าม hardcode hex ใน inline style หรือ component
+- component tokens ใน DESIGN.md บอก context การใช้งาน — ดูก่อน assign Tailwind class
+- `npx @google/design.md lint DESIGN.md` — validate token references หลังแก้ DESIGN.md
+
 ---
 
 ## Code Standards
