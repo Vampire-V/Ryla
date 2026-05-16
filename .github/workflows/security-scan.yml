@@ -77,18 +77,18 @@ jobs:
           matches = re.findall(r'(High|Critical)', content, re.IGNORECASE)
 
           if matches:
-              print(f"❌ Found {len(matches)} High/Critical vulnerability(ies)")
+              print(f"Found {len(matches)} High/Critical vulnerability(ies)")
               sys.exit(1)
 
-          print("✅ No High/Critical vulnerabilities found")
+          print("No High/Critical vulnerabilities found")
           EOF
 
   # ─────────────────────────────────────────────────────────────
-  # JOB 3: npm Dependency Audit
-  # Fails on High or Critical CVEs in npm packages
+  # JOB 3: pnpm Dependency Audit
+  # Fails on High or Critical CVEs in pnpm packages
   # ─────────────────────────────────────────────────────────────
   dependency-audit-frontend:
-    name: npm Dependency Audit
+    name: pnpm Dependency Audit
     runs-on: ubuntu-latest
 
     defaults:
@@ -98,17 +98,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      - name: npm audit — High/Critical gate
-        run: npm audit --audit-level=high
+      - name: pnpm audit — High/Critical gate
+        run: pnpm audit --audit-level=high
         # exit 1 ถ้ามี vulnerability ระดับ high ขึ้นไป
 
   # ─────────────────────────────────────────────────────────────
