@@ -40,7 +40,9 @@ public class ShopeeWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
                 {
                     ["Shopee:PartnerKey"] = "test-partner-key",
                     ["Shopee:CallbackUrl"] = "http://localhost/webhooks/shopee",
-                    ["Shopee:MaxAgeSeconds"] = "300"
+                    ["Shopee:MaxAgeSeconds"] = "300",
+                    ["Supabase:JwtSecret"] = "ryla-test-jwt-secret-32-chars-min!",
+                    ["ConnectionStrings:Supabase"] = "Host=localhost;Port=54322;Database=postgres;Username=postgres;Password=postgres"
                 });
             });
 

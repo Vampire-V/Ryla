@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using NSubstitute;
@@ -19,6 +21,15 @@ public class HealthEndpointsTests : IClassFixture<WebApplicationFactory<Program>
     private HttpClient CreateClientWith(IDbConnectionFactory dbFactory) =>
         _factory.WithWebHostBuilder(builder =>
         {
+            builder.ConfigureAppConfiguration((_, config) =>
+            {
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Supabase:JwtSecret"] = "ryla-test-jwt-secret-32-chars-min!",
+                    ["ConnectionStrings:Supabase"] = "Host=localhost;Port=54322;Database=postgres;Username=postgres;Password=postgres"
+                });
+            });
+
             builder.ConfigureTestServices(services =>
             {
                 // แทน IDbConnectionFactory ให้ควบคุม DB-probe behavior ใน test
