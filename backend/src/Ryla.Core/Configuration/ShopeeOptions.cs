@@ -22,4 +22,15 @@ public sealed class ShopeeOptions
 
     /// <summary>อายุสูงสุดของ webhook request (วินาที) เพื่อป้องกัน replay attack</summary>
     public int MaxAgeSeconds { get; set; } = 300; // 5 minutes
+
+    // ─── Finance API (RYLA-9) ─────────────────────────────────────────────────
+
+    /// <summary>Partner ID จาก Shopee Partner Console (ใช้ใน API signature)</summary>
+    public long PartnerId { get; set; }
+
+    /// <summary>Base URL ของ Shopee Open Platform API</summary>
+    public string ApiBaseUrl { get; set; } = "https://partner.shopeemobile.com";
+
+    /// <summary>Redirect URL หลัง OAuth consent (ต่างจาก webhook CallbackUrl)</summary>
+    public string OAuthRedirectUrl { get; set; } = string.Empty;
 }
