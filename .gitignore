@@ -12,6 +12,7 @@ backend/**/*.user
 backend/**/.vs/
 backend/**/coverage/
 backend/**/*.pfx
+backend/**/*.lscache
 
 # Frontend
 frontend/.next/
