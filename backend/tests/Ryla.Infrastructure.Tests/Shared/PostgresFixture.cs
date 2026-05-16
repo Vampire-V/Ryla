@@ -85,10 +85,29 @@ public sealed class PostgresFixture : IAsyncLifetime
     {
         await using var connection = new NpgsqlConnection(ConnectionString);
         await connection.OpenAsync();
+        // ระบุ tables ครบเพื่อความชัดเจน — CASCADE ช่วย FK แต่ explicit ป้องกัน confusion
         await ExecuteSqlAsync(connection, """
-            TRUNCATE TABLE connections, profiles, tenants RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE order_items, orders, sku_costs, shopee_tokens,
+                           connections, profiles, tenants RESTART IDENTITY CASCADE;
             TRUNCATE TABLE auth.users RESTART IDENTITY CASCADE;
             """);
+    }
+
+    /// <summary>
+    /// Helper: insert tenant โดยตรง (ไม่ผ่าน auth trigger) สำหรับ order/sku tests
+    /// </summary>
+    public async Task<Guid> SeedTenantAsync(string name = "Test Business")
+    {
+        var tenantId = Guid.NewGuid();
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        await connection.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            "INSERT INTO tenants (id, name) VALUES (@id, @name)",
+            connection);
+        cmd.Parameters.AddWithValue("id", tenantId);
+        cmd.Parameters.AddWithValue("name", name);
+        await cmd.ExecuteNonQueryAsync();
+        return tenantId;
     }
 }
 

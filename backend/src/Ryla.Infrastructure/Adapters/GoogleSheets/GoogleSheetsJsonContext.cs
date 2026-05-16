@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Ryla.Infrastructure.Adapters.GoogleSheets;
@@ -15,38 +16,47 @@ namespace Ryla.Infrastructure.Adapters.GoogleSheets;
 [JsonSerializable(typeof(GoogleApiErrorBody))]
 [JsonSerializable(typeof(ServiceAccountKeyFile))]
 [JsonSerializable(typeof(JwtPayload))]
+[ExcludeFromCodeCoverage]
 internal sealed partial class GoogleSheetsJsonContext : JsonSerializerContext;
 
+[ExcludeFromCodeCoverage]
 internal sealed record AppendValuesRequest(
     string MajorDimension,
     IReadOnlyList<IReadOnlyList<string>> Values);
 
+[ExcludeFromCodeCoverage]
 internal sealed record AppendValuesResponse(
     string? SpreadsheetId,
     AppendUpdatesResponse? Updates);
 
+[ExcludeFromCodeCoverage]
 internal sealed record AppendUpdatesResponse(
     string? UpdatedRange,
     int UpdatedRows);
 
+[ExcludeFromCodeCoverage]
 internal sealed record OAuthTokenResponse(
     [property: JsonPropertyName("access_token")] string? AccessToken,
     [property: JsonPropertyName("expires_in")] int ExpiresIn,
     [property: JsonPropertyName("token_type")] string? TokenType);
 
+[ExcludeFromCodeCoverage]
 internal sealed record GoogleApiErrorResponse(
     GoogleApiErrorBody? Error);
 
+[ExcludeFromCodeCoverage]
 internal sealed record GoogleApiErrorBody(
     int Code,
     string? Message,
     string? Status);
 
+[ExcludeFromCodeCoverage]
 internal sealed record ServiceAccountKeyFile(
     [property: JsonPropertyName("client_email")] string ClientEmail,
     [property: JsonPropertyName("private_key")] string PrivateKey,
     [property: JsonPropertyName("token_uri")] string TokenUri);
 
+[ExcludeFromCodeCoverage]
 internal sealed record JwtPayload(
     [property: JsonPropertyName("iss")] string Iss,
     [property: JsonPropertyName("scope")] string Scope,

@@ -96,48 +96,47 @@ def run_case(desc, fn, condition):
 
 cases = []
 
-# ─── Validation: missing X-Tenant-Id → 400 ───────────────────────────────────
+# ─── Auth: no JWT → 401 (endpoints ต้องการ Bearer token หลัง IDOR fix) ────────
 
 cases.append((
-    "summary_no_header: GET /api/profit/summary sans X-Tenant-Id → 400",
+    "summary_no_auth: GET /api/profit/summary sans Bearer token → 401",
     lambda: get("/api/profit/summary"),
-    lambda r: r[0] == 400,
+    lambda r: r[0] == 401,
 ))
 
 cases.append((
-    "orders_no_header: GET /api/profit/orders sans X-Tenant-Id → 400",
+    "orders_no_auth: GET /api/profit/orders sans Bearer token → 401",
     lambda: get("/api/profit/orders"),
-    lambda r: r[0] == 400,
+    lambda r: r[0] == 401,
 ))
 
 cases.append((
-    "sku_costs_no_header: GET /api/profit/sku-costs sans X-Tenant-Id → 400",
+    "sku_costs_no_auth: GET /api/profit/sku-costs sans Bearer token → 401",
     lambda: get("/api/profit/sku-costs"),
-    lambda r: r[0] == 400,
+    lambda r: r[0] == 401,
 ))
 
 cases.append((
-    "sync_status_no_header: GET /api/profit/sync-status sans X-Tenant-Id → 400",
+    "sync_status_no_auth: GET /api/profit/sync-status sans Bearer token → 401",
     lambda: get("/api/profit/sync-status"),
-    lambda r: r[0] == 400,
+    lambda r: r[0] == 401,
 ))
 
-# ─── Validation: POST sku-costs input validation ──────────────────────────────
+# ─── Validation: POST sku-costs sans auth → 401 ──────────────────────────────
+# (Input validation 422 ต้องทดสอบผ่าน unit/integration tests — ต้องมี JWT จริง)
 
 cases.append((
-    "sku_costs_cogs_zero: POST cogs=0 → 422 (cogs must be > 0)",
+    "sku_costs_post_no_auth: POST /api/profit/sku-costs sans Bearer token → 401",
     lambda: post("/api/profit/sku-costs",
-                 {"itemSku": "TEST-SKU", "cogs": 0},
-                 tenant_id=FAKE_TENANT_ID),
-    lambda r: r[0] == 422,
+                 {"itemSku": "TEST-SKU", "cogs": 0}),
+    lambda r: r[0] == 401,
 ))
 
 cases.append((
-    "sku_costs_empty_sku: POST itemSku='' → 422",
+    "sku_costs_post_no_auth_2: POST /api/profit/sku-costs (empty sku) sans Bearer → 401",
     lambda: post("/api/profit/sku-costs",
-                 {"itemSku": "", "cogs": 100},
-                 tenant_id=FAKE_TENANT_ID),
-    lambda r: r[0] == 422,
+                 {"itemSku": "", "cogs": 100}),
+    lambda r: r[0] == 401,
 ))
 
 # ─── OAuth endpoints ──────────────────────────────────────────────────────────
@@ -153,6 +152,16 @@ cases.append((
     lambda: get("/api/shopee/oauth/authorize", params="tenant_id=" + FAKE_TENANT_ID,
                 follow_redirects=False),
     lambda r: r[0] == 302,
+))
+
+# ─── OAuth CSRF: callback without state signature → 400 ──────────────────────
+
+cases.append((
+    "oauth_callback_no_sig: GET /api/shopee/oauth/callback sans sig → 400",
+    lambda: get("/api/shopee/oauth/callback",
+                params=f"tenant_id={FAKE_TENANT_ID}&code=fakecode&shop_id=1",
+                follow_redirects=False),
+    lambda r: r[0] == 400,
 ))
 
 # ─── Webhook security: tampered payload ───────────────────────────────────────
