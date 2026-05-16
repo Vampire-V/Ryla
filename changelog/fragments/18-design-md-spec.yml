@@ -1,0 +1,10 @@
+pr: 18
+type: docs
+scope: "frontend"
+title: "เพิ่ม DESIGN.md — Calm Authority design system spec"
+description: |
+  เพิ่ม DESIGN.md เป็น single source of truth สำหรับ design tokens, typography,
+  spacing, colors, และ component guidelines ของ Calm Authority design language
+  แก้ไข body font-family ให้ใช้ Geist ผ่าน CSS variable อย่างถูกต้อง
+breaking: false
+migration: false
