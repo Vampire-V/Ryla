@@ -24,8 +24,16 @@ var app = builder.Build();
 // ใน production จะอยู่หลัง auth middleware
 app.MapOpenApi();
 
+// Auth middleware ต้องอยู่ก่อน endpoint routing
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapHealthEndpoints();
 app.MapTikTokWebhookEndpoints();
 app.MapShopeeWebhookEndpoints();
+app.MapTestNotificationEndpoints();
+app.MapSimulateOrderEndpoints();
+app.MapProfitEndpoints();
+app.MapShopeeOAuthEndpoints();
 
 app.Run();

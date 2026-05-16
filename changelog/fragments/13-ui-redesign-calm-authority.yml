@@ -1,0 +1,12 @@
+pr: 13
+type: feat
+scope: "frontend"
+title: "UI redesign — Calm Authority design language"
+description: |
+  แทน emoji navigation และ UI icons ทั้งหมดด้วย lucide-react icons
+  ปรับ sidebar ให้กว้างขึ้น (w-56) และ near-black (#0F1117) background
+  เพิ่ม design tokens ใน globals.css สำหรับ consistent theming
+  ปรับ typography hierarchy ทุกหน้า (headings ใหญ่ขึ้น, contrast ดีขึ้น)
+  Login page มี logo mark และ card ที่ polish กว่าเดิม
+breaking: false
+migration: false

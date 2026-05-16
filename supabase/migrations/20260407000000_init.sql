@@ -35,7 +35,7 @@ CREATE POLICY "profiles: self access"
 
 -- -------------------------------------------------------------
 -- Connections: การเชื่อมต่อ platform ที่ tenant ตั้งค่าไว้
--- credentials เก็บ encrypted ที่ application layer
+-- credentials เก็บ plaintext JSONB — access controlled by RLS (tenant isolation)
 -- -------------------------------------------------------------
 CREATE TABLE connections (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -3,6 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Ryla Design Tokens */
+  --color-sidebar: #0F1117;
+  --color-sidebar-border: #1E2430;
+  --color-page-bg: #F8FAFC;
+  --color-card: #FFFFFF;
+  --color-brand: #4F46E5;
+  --color-brand-hover: #4338CA;
+  --color-success: #059669;
+  --color-success-bg: #ECFDF5;
+  --color-error: #DC2626;
+  --color-error-bg: #FEF2F2;
+  --color-warning-text: #92400E;
+  --color-warning-bg: #FFFBEB;
 }
 
 @theme inline {

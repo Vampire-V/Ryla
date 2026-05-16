@@ -1,0 +1,9 @@
+pr: 10
+type: feat
+scope: "frontend"
+title: "Flow Configuration UI — connect LINE OA + Google Sheets"
+description: |
+  Dashboard ที่ให้ seller login ด้วย Google, เพิ่ม LINE OA / Google Sheets connection,
+  กด "ส่งทดสอบ" เพื่อรับ LINE message จริง และดู Webhook URL สำหรับ Shopee
+breaking: false
+migration: true

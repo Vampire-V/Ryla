@@ -3,27 +3,32 @@
 
 ## Current Sprint Focus
 <!-- Feature หรือ milestone ที่กำลังทำอยู่ -->
+- [x] [RYLA-9] Real Profit Dashboard — merged to develop via PR #16 (2026-05-16)
+- [x] Landing page redesign — hero mockup + 4 sections — merged to develop via PR #14 (2026-05-11)
+- [x] [RYLA-8] UI Redesign — Calm Authority design language — merged to develop via PR #13 (2026-05-10)
+- [x] [RYLA-7] Order Simulator — merged to develop via PR #12 (2026-05-10)
+- [x] [RYLA-6] Flow Configuration UI — merged to develop via PR #10 (2026-05-10)
+- [x] fix/google-oauth-redirect-and-tenant-quota — merged to develop via PR #11 (2026-05-10)
 - [x] [RYLA-5] Google Sheets append-row adapter — merged to develop via PR #8 (2026-04-25)
 - [x] [RYLA-4 + DX-01] LINE OA push + DB fail-fast workflow — merged to develop via PR #7 (2026-04-20)
 - [x] [RYLA-3] Shopee webhook receiver — merged to develop via PR #6 (2026-04-20)
 - [x] [RYLA-2] TikTok Shop webhook receiver — merged to main, tagged v0.1.0
 - [x] [RYLA-1] Tenant Onboarding — merged to main, tagged v0.1.0
-- [x] [RYLA-0] Health Check Endpoint — already done in initial setup
 
 ## Last 3 Completed Tasks
-1. [RYLA-5] Google Sheets append-row adapter — merged to develop via PR #8, 86 tests, 0 AOT warnings (2026-04-25)
-2. [RYLA-4 + DX-01] LINE OA push adapter + fail-fast DB workflow — 96 tests pass, 91% coverage, 0 AOT warnings (2026-04-20)
-3. [RYLA-3] Shopee webhook receiver — HMAC-SHA256 + replay protection + 9/9 E2E pass (2026-04-20)
+1. **PR #16 merged** — RYLA-9 Real Profit Dashboard: Shopee OAuth, orders/margin analytics, COGS, Azure Functions timer, IDOR fix, 190 tests (2026-05-16)
+2. **PR #14 merged** — Landing page redesign: hero mockup, 4 sections, LINE notification animation (2026-05-11)
+3. **PR #13 merged** — RYLA-8 UI Redesign: Calm Authority design language, lucide-react icons, sidebar/typography overhaul (2026-05-10)
 
 ## Active Branch
-<!-- อัพเดทเมื่อเริ่ม feature ใหม่ -->
-- `develop` — พร้อม cut release/v0.2.0 (RYLA-3 + RYLA-4 + RYLA-5 merged)
+- `develop` — ทุก feature ถึง RYLA-9 merge แล้ว พร้อม release v0.3.0
 
 ## Latest Release
-- `v0.1.0` — Health Check + Tenant Onboarding + TikTok Shop Webhook (2026-04-19)
+- `v0.2.0` — Shopee webhook + LINE OA push + Google Sheets adapter (2026-04-25)
+- develop มี RYLA-6 UI + tenant quota + OAuth fixes + Order Simulator (ยังไม่ release เป็น v0.3.0)
 
 ## Repo Status
-- **Visibility:** Public (เปลี่ยนจาก private 2026-04-19)
+- **Visibility:** Public
 - **Branch protection:** main + develop require PR + `All Checks Passed` + `Test & Coverage Gate` + `Native AOT Build`
 - **CI:** เขียวทุก check รวม security scan (CodeQL, Gitleaks, npm/NuGet audit)
 
@@ -31,6 +36,6 @@
 - None
 
 ## Next Up
-- **Release v0.2.0** — cut release/v0.2.0 จาก develop (RYLA-3 + RYLA-4 + RYLA-5 พร้อมแล้ว)
-- **Real-world validation** — test Shopee HMAC + LINE + Google Sheets API กับ platform sandbox ของจริง
-- **Flow Configuration UI (RYLA-6)** — dashboard page สำหรับ connect platforms (frontend)
+- **v0.3.0 release** — compile RYLA-6 + RYLA-7 + RYLA-8 + landing page + RYLA-9 (PR #10-#16) into release
+- **Azure Functions deployment** — infrastructure setup สำหรับ SyncOrdersTimerFunction
+- **Shopee / TikTok real validation** — defer (ต้องมี business partner account)

@@ -1,0 +1,18 @@
+pr: 16
+type: feat
+scope: "api"
+title: "Real Profit Dashboard — Shopee gross/net margin analytics (RYLA-9)"
+description: |
+  แสดง gross/net margin จริงหลังหักค่าธรรมเนียม Shopee commission, voucher, shipping rebate
+  สำหรับร้านค้าออนไลน์ที่เชื่อมต่อ Shopee Open Platform
+
+  Features:
+  - Shopee OAuth 2.0 integration (read-only scope)
+  - 30-day backfill trigger หลัง OAuth
+  - Hourly sync via Azure Functions Timer (SyncOrdersTimerFunction)
+  - KPI Dashboard: Revenue, Gross Margin %, Net Margin %
+  - Orders table with "รอยืนยัน" badge สำหรับ non-COMPLETED orders
+  - COGS management (manual entry per item_sku)
+  - Real-time sync status polling สำหรับ onboarding wizard
+breaking: false
+migration: true

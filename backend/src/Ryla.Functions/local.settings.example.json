@@ -1,0 +1,16 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "ConnectionStrings__Supabase": "Host=localhost;Port=54322;Database=postgres;Username=postgres;Password=postgres;Include Error Detail=true;",
+    "Shopee__PartnerKey": "<your-shopee-partner-key>",
+    "Shopee__PartnerId": "<your-shopee-partner-id>",
+    "Shopee__ApiBaseUrl": "https://partner.shopeemobile.com",
+    "Shopee__OAuthRedirectUrl": "http://localhost:5282/api/shopee/oauth/callback",
+    "Shopee__CallbackUrl": "http://localhost:5282/webhooks/shopee",
+    "Line__BaseUrl": "https://api.line.me",
+    "GoogleSheets__BaseUrl": "https://sheets.googleapis.com",
+    "GoogleSheets__TokenEndpoint": "https://oauth2.googleapis.com/token"
+  }
+}

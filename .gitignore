@@ -12,6 +12,8 @@ backend/**/*.user
 backend/**/.vs/
 backend/**/coverage/
 backend/**/*.pfx
+backend/**/*.lscache
+backend/**/local.settings.json
 
 # Frontend
 frontend/.next/
@@ -22,6 +24,10 @@ frontend/coverage/
 # Supabase
 supabase/.branches/
 supabase/.temp/
+
+# Google Cloud service account key files (NEVER commit)
+ryla-*.json
+client_secret_*.apps.googleusercontent.com.json
 
 # Secrets — NEVER commit these
 .env
@@ -48,7 +54,7 @@ TestResults/
 
 # IDEs
 .idea/
-.vscode/settings.json
+.vscode/
 *.suo
 
 # Claude Code local settings (personal overrides, ไม่ share ระหว่าง developers)
@@ -62,3 +68,14 @@ skills/
 # Other AI editor configs
 .kiro/
 .windsurf/
+
+# AOT publish artifacts (local only)
+aot-publish*/
+
+# Demo screenshots (local only)
+demo-*.png
+
+# Local tooling
+.playwright-mcp/
+.superpowers/
+.claude/review-passed.json
