@@ -78,7 +78,7 @@ public static class ProfitEndpoints
         CancellationToken ct = default)
     {
         if (!TryGetTenantId(ctx, out var tenantId))
-            return Results.BadRequest(new { error = "X-Tenant-Id header missing or invalid" });
+            return Results.BadRequest();
 
         var (dateFrom, dateTo) = ParseDateRange(range, from, to);
         var summary = await useCase.ExecuteAsync(tenantId, dateFrom, dateTo, ct);
@@ -96,7 +96,7 @@ public static class ProfitEndpoints
         CancellationToken ct = default)
     {
         if (!TryGetTenantId(ctx, out var tenantId))
-            return Results.BadRequest(new { error = "X-Tenant-Id header missing or invalid" });
+            return Results.BadRequest();
 
         limit = Math.Clamp(limit, 1, 100);
         page = Math.Max(1, page);
@@ -114,7 +114,7 @@ public static class ProfitEndpoints
         CancellationToken ct = default)
     {
         if (!TryGetTenantId(ctx, out var tenantId))
-            return Results.BadRequest(new { error = "X-Tenant-Id header missing or invalid" });
+            return Results.BadRequest();
 
         var costs = await useCase.ExecuteAsync(tenantId, Platform, ct);
         return Results.Json(new SkuCostsResponse(costs.ToArray()), RylaJsonContext.Default.SkuCostsResponse);
@@ -127,13 +127,13 @@ public static class ProfitEndpoints
         CancellationToken ct = default)
     {
         if (!TryGetTenantId(ctx, out var tenantId))
-            return Results.BadRequest(new { error = "X-Tenant-Id header missing or invalid" });
+            return Results.BadRequest();
 
         if (string.IsNullOrWhiteSpace(request.ItemSku))
-            return Results.UnprocessableEntity(new { error = "itemSku is required" });
+            return Results.UnprocessableEntity();
 
         if (request.Cogs <= 0)
-            return Results.UnprocessableEntity(new { error = "cogs must be greater than 0" });
+            return Results.UnprocessableEntity();
 
         var result = await useCase.ExecuteAsync(
             tenantId, Platform, request.ItemSku, request.ItemName, request.Cogs, ct);
@@ -146,7 +146,7 @@ public static class ProfitEndpoints
         CancellationToken ct = default)
     {
         if (!TryGetTenantId(ctx, out var tenantId))
-            return Results.BadRequest(new { error = "X-Tenant-Id header missing or invalid" });
+            return Results.BadRequest();
 
         var progress = await useCase.ExecuteAsync(tenantId, ct);
         return Results.Json(progress, RylaJsonContext.Default.SyncProgress);

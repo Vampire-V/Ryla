@@ -47,7 +47,7 @@ public static class ShopeeOAuthEndpoints
         CancellationToken ct = default)
     {
         if (!Guid.TryParse(tenant_id, out var tenantId))
-            return Results.BadRequest(new { error = "tenant_id is required and must be a valid UUID" });
+            return Results.BadRequest();
 
         // Embed tenant_id ใน redirect URL — Shopee จะ append code + shop_id ต่อท้าย
         var callbackBase = options.Value.OAuthRedirectUrl;
@@ -70,13 +70,13 @@ public static class ShopeeOAuthEndpoints
         CancellationToken ct = default)
     {
         if (!Guid.TryParse(tenant_id, out var tenantId))
-            return Results.BadRequest(new { error = "tenant_id is missing or invalid" });
+            return Results.BadRequest();
 
         if (string.IsNullOrEmpty(code))
-            return Results.BadRequest(new { error = "code is required" });
+            return Results.BadRequest();
 
         if (shop_id is null or 0)
-            return Results.BadRequest(new { error = "shop_id is required" });
+            return Results.BadRequest();
 
         try
         {
