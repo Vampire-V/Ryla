@@ -3,7 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Ryla.Api.Endpoints;
 using Ryla.Core.Configuration;
+using Ryla.Core.Domain.Orders;
 using Ryla.Core.Domain.Webhooks;
+using Ryla.Core.Ports.Outbound;
 using Ryla.Core.Services;
 using Ryla.Core.UseCases;
 using Ryla.Infrastructure.Adapters.LineMessaging;
@@ -21,6 +23,17 @@ namespace Ryla.Api.Extensions;
 [JsonSerializable(typeof(TestNotificationResponse))]
 [JsonSerializable(typeof(SimulateOrderRequest))]
 [JsonSerializable(typeof(SimulateOrderResponse))]
+// ─── Profit Dashboard types ───────────────────────────────────────────────────
+[JsonSerializable(typeof(ProfitSummary))]
+[JsonSerializable(typeof(ShopeeOrder))]
+[JsonSerializable(typeof(ShopeeOrder[]))]
+[JsonSerializable(typeof(OrdersResponse))]
+[JsonSerializable(typeof(SkuCost))]
+[JsonSerializable(typeof(SkuCost[]))]
+[JsonSerializable(typeof(SkuCostsResponse))]
+[JsonSerializable(typeof(SyncProgress))]
+[JsonSerializable(typeof(UpsertSkuCostRequest))]
+[JsonSerializable(typeof(AuthorizeResponse))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false)]

@@ -29,5 +29,7 @@ app.MapTikTokWebhookEndpoints();
 app.MapShopeeWebhookEndpoints();
 app.MapTestNotificationEndpoints();
 app.MapSimulateOrderEndpoints();
+app.MapProfitEndpoints();
+app.MapShopeeOAuthEndpoints();
 
 app.Run();

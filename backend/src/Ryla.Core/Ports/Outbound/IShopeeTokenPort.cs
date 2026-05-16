@@ -39,4 +39,11 @@ public interface IShopeeTokenPort
     /// </summary>
     Task<IReadOnlyList<Guid>> GetTenantIdsWithTokenAsync(
         CancellationToken ct = default);
+
+    /// <summary>
+    /// ระบุ tenant จาก shop_id (สำหรับ webhook → store order ใน orders table)
+    /// </summary>
+    Task<Guid?> GetTenantIdByShopIdAsync(
+        long shopId,
+        CancellationToken ct = default);
 }

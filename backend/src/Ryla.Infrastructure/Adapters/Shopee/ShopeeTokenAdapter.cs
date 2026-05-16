@@ -141,6 +141,18 @@ internal sealed class ShopeeTokenAdapter(IDbConnectionFactory connectionFactory)
         return results;
     }
 
+    public async Task<Guid?> GetTenantIdByShopIdAsync(long shopId, CancellationToken ct = default)
+    {
+        await using var conn = await connectionFactory.CreateAsync(ct);
+        await using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = "SELECT tenant_id FROM shopee_tokens WHERE shop_id = @shopId LIMIT 1";
+        cmd.Parameters.AddWithValue("shopId", shopId);
+
+        var result = await cmd.ExecuteScalarAsync(ct);
+        return result is Guid tenantId ? tenantId : null;
+    }
+
     private static async Task<Guid> CreateVaultSecretAsync(
         Npgsql.NpgsqlConnection conn,
         Npgsql.NpgsqlTransaction transaction,
