@@ -32,22 +32,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: ESLint — zero-warning gate
-        run: npm run lint
+        run: pnpm lint
         # --max-warnings 0 อยู่ใน package.json script แล้ว
 
       - name: TypeScript — type check
-        run: npm run type-check
+        run: pnpm type-check
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Test + Coverage Gate
@@ -66,18 +71,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run Vitest with coverage
-        run: npm run test:coverage
+        run: pnpm test:coverage
         # vitest outputs coverage/coverage-summary.json (json-summary reporter)
 
       - name: Quality Gate — enforce 80% line coverage
@@ -88,7 +98,7 @@ jobs:
 
           if (!fs.existsSync(summaryPath)) {
             // No tests yet — warn but don't fail during bootstrap phase
-            console.log('⚠️  No coverage summary found. Add tests to enforce gate.');
+            console.log('Warning: No coverage summary found. Add tests to enforce gate.');
             process.exit(0);
           }
 
@@ -96,16 +106,16 @@ jobs:
           const pct = summary.total?.lines?.pct ?? 0;
           const threshold = 80;
 
-          console.log(`Line coverage : ${pct}%`);
-          console.log(`Threshold     : ${threshold}%`);
+          console.log('Line coverage : ' + pct + '%');
+          console.log('Threshold     : ' + threshold + '%');
 
           if (pct < threshold) {
-            console.error(`\n❌ QUALITY GATE FAILED: ${pct}% < ${threshold}%`);
-            console.error('Coverage must be ≥ 80% before merging.');
+            console.error('QUALITY GATE FAILED: ' + pct + '% < ' + threshold + '%');
+            console.error('Coverage must be >= 80% before merging.');
             process.exit(1);
           }
 
-          console.log(`\n✅ QUALITY GATE PASSED: ${pct}% ≥ ${threshold}%`);
+          console.log('QUALITY GATE PASSED: ' + pct + '% >= ' + threshold + '%');
           EOF
 
       - name: Upload coverage artifact
@@ -133,18 +143,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Next.js production build
-        run: npm run build
+        run: pnpm build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}

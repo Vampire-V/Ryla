@@ -1,0 +1,9 @@
+pr: 19
+type: chore
+scope: "ci"
+title: "back-merge main → develop — pnpm migration + Node 24 upgrade"
+description: |
+  นำ pnpm migration (PR #17) ที่ merge เข้า main โดยไม่ตั้งใจ กลับเข้า develop
+  ทำให้ develop มี pnpm-lock.yaml, Node 24, และ updated CI workflows ครบถ้วน
+breaking: false
+migration: false

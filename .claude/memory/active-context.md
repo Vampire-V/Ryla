@@ -3,7 +3,8 @@
 
 ## Current Sprint Focus
 <!-- Feature หรือ milestone ที่กำลังทำอยู่ -->
-- [x] pnpm migration + Node 24 upgrade — merged to develop via PR #17 (2026-05-17)
+- [x] DESIGN.md — Calm Authority design system spec — merged to develop via PR #18 (2026-05-17)
+- [x] pnpm migration + Node 24 upgrade — merged to main via PR #17, back-merge → develop via PR #19 (2026-05-17)
 - [x] [RYLA-9] Real Profit Dashboard — merged to develop via PR #16 (2026-05-16)
 - [x] Landing page redesign — hero mockup + 4 sections — merged to develop via PR #14 (2026-05-11)
 - [x] [RYLA-8] UI Redesign — Calm Authority design language — merged to develop via PR #13 (2026-05-10)
@@ -17,10 +18,9 @@
 - [x] [RYLA-1] Tenant Onboarding — merged to main, tagged v0.1.0
 
 ## Last 3 Completed Tasks
-1. **PR #17 merged** — pnpm migration + Node 24: lockfile, Makefile, CI workflows (2026-05-17)
-2. **PR #16 merged** — RYLA-9 Real Profit Dashboard: Shopee OAuth, orders/margin analytics, COGS, Azure Functions timer, IDOR fix, 190 tests (2026-05-16)
-3. **PR #14 merged** — Landing page redesign: hero mockup, 4 sections, LINE notification animation (2026-05-11)
-3. **PR #13 merged** — RYLA-8 UI Redesign: Calm Authority design language, lucide-react icons, sidebar/typography overhaul (2026-05-10)
+1. **PR #18 merged** — DESIGN.md: Calm Authority design system spec + font fix (2026-05-17)
+2. **PR #17 merged** — pnpm migration + Node 24: lockfile, Makefile, CI workflows (2026-05-17)
+3. **PR #16 merged** — RYLA-9 Real Profit Dashboard: Shopee OAuth, orders/margin analytics, COGS, Azure Functions timer, IDOR fix, 190 tests (2026-05-16)
 
 ## Active Branch
 - `develop` — ทุก feature ถึง RYLA-9 merge แล้ว พร้อม release v0.3.0
