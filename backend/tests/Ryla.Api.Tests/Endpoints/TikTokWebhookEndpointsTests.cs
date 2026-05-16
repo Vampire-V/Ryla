@@ -39,7 +39,9 @@ public class TikTokWebhookEndpointsTests : IClassFixture<WebApplicationFactory<P
             {
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["TikTokShop:ClientSecret"] = "test-secret"
+                    ["TikTokShop:ClientSecret"] = "test-secret",
+                    ["Supabase:JwtSecret"] = "ryla-test-jwt-secret-32-chars-min!",
+                    ["ConnectionStrings:Supabase"] = "Host=localhost;Port=54322;Database=postgres;Username=postgres;Password=postgres"
                 });
             });
 

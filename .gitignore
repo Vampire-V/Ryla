@@ -12,6 +12,8 @@ backend/**/*.user
 backend/**/.vs/
 backend/**/coverage/
 backend/**/*.pfx
+backend/**/*.lscache
+backend/**/local.settings.json
 
 # Frontend
 frontend/.next/
@@ -66,6 +68,9 @@ skills/
 # Other AI editor configs
 .kiro/
 .windsurf/
+
+# AOT publish artifacts (local only)
+aot-publish*/
 
 # Demo screenshots (local only)
 demo-*.png

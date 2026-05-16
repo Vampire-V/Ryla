@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Ryla.Core.Ports.Outbound;
@@ -5,10 +6,13 @@ using Ryla.Infrastructure.Adapters.Connections;
 using Ryla.Infrastructure.Adapters.Database;
 using Ryla.Infrastructure.Adapters.LineMessaging;
 using Ryla.Infrastructure.Adapters.GoogleSheets;
+using Ryla.Infrastructure.Adapters.Orders;
+using Ryla.Infrastructure.Adapters.Shopee;
 using Ryla.Infrastructure.Adapters.Tenants;
 
 namespace Ryla.Infrastructure;
 
+[ExcludeFromCodeCoverage] // DI wiring — no business logic to test
 public static class DependencyInjection
 {
     public static IServiceCollection AddRylaInfrastructureServices(
@@ -32,6 +36,11 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IConnectionRepository, ConnectionRepository>();
 
+        // ─── Profit Dashboard Repositories ──────────────────────────────────────
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<ISkuCostRepository, SkuCostRepository>();
+        services.AddScoped<IShopeeTokenPort, ShopeeTokenAdapter>();
+
         // ─── LINE Messaging API ──────────────────────────────────────────────────
         // Note: LineOptions configuration happens in Api layer (ServiceCollectionExtensions)
         // เพื่อหลีกเลี่ยง IL2026/IL3050 warnings ใน AOT-compatible library
@@ -47,6 +56,16 @@ public static class DependencyInjection
         services.AddHttpClient<ISheetAppender, GoogleSheetsClient>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(10);
+        });
+
+        // ─── Shopee Finance API ──────────────────────────────────────────────────
+        services.AddHttpClient<IShopeeOAuthPort, ShopeeOAuthAdapter>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddHttpClient<IShopeeOrderDetailPort, ShopeeOrderDetailAdapter>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
         });
 
         return services;

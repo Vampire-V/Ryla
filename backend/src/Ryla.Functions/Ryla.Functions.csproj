@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <IsAotCompatible>true</IsAotCompatible>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.22.*" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.*" />
+    <!-- NOTE: Microsoft.Azure.Functions.Worker.Sdk 1.x ไม่รองรับ net10.0 (มีเฉพาะถึง net8)
+         ใช้ reflection-based function discovery — AOT source gen จะ enable ได้เมื่อ SDK รองรับ net10 -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ryla.Core\Ryla.Core.csproj" />
+    <ProjectReference Include="..\Ryla.Infrastructure\Ryla.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

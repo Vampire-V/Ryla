@@ -31,7 +31,9 @@ public sealed class TestNotificationEndpointsTests : IClassFixture<WebApplicatio
             {
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["InternalApiSecret"] = ValidSecret
+                    ["InternalApiSecret"] = ValidSecret,
+                    ["Supabase:JwtSecret"] = "ryla-test-jwt-secret-32-chars-min!",
+                    ["ConnectionStrings:Supabase"] = "Host=localhost;Port=54322;Database=postgres;Username=postgres;Password=postgres"
                 });
             });
 
